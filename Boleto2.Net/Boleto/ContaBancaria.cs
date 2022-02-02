@@ -10,6 +10,8 @@ namespace Boleto2Net
         public string VariacaoCarteiraPadrao { get; set; } = string.Empty;
         public string CarteiraComVariacaoPadrao => string.IsNullOrEmpty(CarteiraPadrao) || string.IsNullOrEmpty(VariacaoCarteiraPadrao) ? $"{CarteiraPadrao}{VariacaoCarteiraPadrao}" : $"{CarteiraPadrao}/{VariacaoCarteiraPadrao}";
 
+        //Sicredi usa posto
+        public string Posto { get; set; } = Empty;
         public string Agencia { get; set; } = Empty;
         public string DigitoAgencia { get; set; } = Empty;
         public string Conta { get; set; } = Empty;

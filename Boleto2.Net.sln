@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boleto2.Net", "Boleto2.Net\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boleto2.Net.Testes", "Boleto2.Net.Testes\Boleto2.Net.Testes.csproj", "{92951948-996F-4F22-AB35-74B06C45E1D4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boleto2.Net.WinForms", "Boleto2Net.WinForms\Boleto2.Net.WinForms.csproj", "{A58497D3-7108-48A3-8CAC-093E1B57B744}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boleto2.Net.Interativo", "Boleto2.Net.Interativo\Boleto2.Net.Interativo.csproj", "{C2487626-9422-4DBB-A408-C3263111C54F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +25,19 @@ Global
 		{92951948-996F-4F22-AB35-74B06C45E1D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92951948-996F-4F22-AB35-74B06C45E1D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92951948-996F-4F22-AB35-74B06C45E1D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A58497D3-7108-48A3-8CAC-093E1B57B744}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A58497D3-7108-48A3-8CAC-093E1B57B744}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A58497D3-7108-48A3-8CAC-093E1B57B744}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A58497D3-7108-48A3-8CAC-093E1B57B744}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2487626-9422-4DBB-A408-C3263111C54F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2487626-9422-4DBB-A408-C3263111C54F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2487626-9422-4DBB-A408-C3263111C54F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2487626-9422-4DBB-A408-C3263111C54F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {44164F57-46E8-4290-A9CE-15133F4E07F6}
 	EndGlobalSection
 EndGlobal

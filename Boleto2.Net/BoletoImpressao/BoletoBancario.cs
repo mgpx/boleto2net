@@ -453,6 +453,164 @@ namespace Boleto2Net
                 .Replace("@INSTRUCOES", Boleto.MensagemInstrucoesCaixa);
         }
 
+        private string MontaHtmlItau(string urlImagemLogo, string urlImagemBarra, string imagemCodigoBarras)
+        {
+            MostrarEnderecoCedente = true;
+
+            var html = new StringBuilder();
+            var enderecoCedente = "";
+            var enderecoCedenteCompacto = "";
+
+            //Oculta o cabeçalho das instruções do boleto
+            if (!OcultarInstrucoes)
+                html.Append(GeraHtmlInstrucoes());
+
+            //Caso mostre o Endereço do Cedente
+            if (MostrarEnderecoCedente)
+            {
+                if (Boleto.Banco.Cedente.Endereco == null)
+                    throw new ArgumentNullException("Endereço do Cedente");
+
+                enderecoCedente = string.Format("{0} - {1} - {2}/{3} - CEP: {4}",
+                                                    Boleto.Banco.Cedente.Endereco.FormataLogradouro(0) +"<br/>",
+                                                    Boleto.Banco.Cedente.Endereco.Bairro,
+                                                    Boleto.Banco.Cedente.Endereco.Cidade,
+                                                    Boleto.Banco.Cedente.Endereco.UF,
+                                                    Utils.FormataCEP(Boleto.Banco.Cedente.Endereco.CEP));
+                enderecoCedenteCompacto = string.Format("{0} - CEP: {1}",
+                                                    Boleto.Banco.Cedente.Endereco.FormataLogradouro(25),
+                                                    Utils.FormataCEP(Boleto.Banco.Cedente.Endereco.CEP));
+            }
+
+            if (Boleto.Banco.Codigo == 237)
+            {
+                enderecoCedente = Boleto.Banco.Cedente.Endereco.LogradouroEndereco;
+            }
+                // Dados do Sacado
+                var sacado = Boleto.Sacado.Nome;
+            switch (Boleto.Sacado.TipoCPFCNPJ("A"))
+            {
+                case "F":
+                    sacado += string.Format(" - CPF: " + Utils.FormataCPF(Boleto.Sacado.CPFCNPJ));
+                    break;
+                case "J":
+                    sacado += string.Format(" - CNPJ: " + Utils.FormataCNPJ(Boleto.Sacado.CPFCNPJ));
+                    break;
+            }
+            if (Boleto.Sacado.Observacoes != string.Empty)
+                sacado += " - " + Boleto.Sacado.Observacoes;
+
+            var enderecoSacado = string.Empty;
+            if (!OcultarEnderecoSacado)
+            {
+                enderecoSacado = Boleto.Sacado.Endereco.FormataLogradouro(0) + "<br />" + string.Format("{0} - {1}/{2}", Boleto.Sacado.Endereco.Bairro, Boleto.Sacado.Endereco.Cidade, Boleto.Sacado.Endereco.UF);
+                if (Boleto.Sacado.Endereco.CEP != String.Empty)
+                    enderecoSacado += string.Format(" - CEP: {0}", Utils.FormataCEP(Boleto.Sacado.Endereco.CEP));
+            }
+
+            // Dados do Avalista
+            var avalista = string.Empty;
+            if (Boleto.Avalista.Nome != string.Empty)
+            {
+                avalista = Boleto.Avalista.Nome;
+                switch (Boleto.Avalista.TipoCPFCNPJ("A"))
+                {
+                    case "F":
+                        avalista += string.Format(" - CPF: " + Utils.FormataCPF(Boleto.Avalista.CPFCNPJ));
+                        break;
+                    case "J":
+                        avalista += string.Format(" - CNPJ: " + Utils.FormataCNPJ(Boleto.Avalista.CPFCNPJ));
+                        break;
+                }
+                if (Boleto.Avalista.Observacoes != string.Empty)
+                    avalista += " - " + Boleto.Avalista.Observacoes;
+
+
+                if (Boleto.Avalista.Endereco != null)
+                {
+                    avalista += "<BR> ";
+                    avalista += Boleto.Avalista.Endereco.LogradouroEndereco + " - " + Boleto.Avalista.Endereco.LogradouroNumero;
+                    avalista += ", " + Boleto.Avalista.Endereco.Bairro + " - " + Boleto.Avalista.Endereco.Cidade + " - " + Boleto.Avalista.Endereco.UF + " - CEP: " + Utils.FormataCEP(Boleto.Avalista.Endereco.CEP);
+                }
+            }
+
+
+            if (!FormatoCarne)
+            {
+                var html2 = new StringBuilder();
+                html2.Append(Html.ReciboCedenteParte1);
+                html2.Append(Html.ReciboCedenteParte2);
+                html2.Append(Html.ReciboCedenteParte3);
+                html2.Append(Html.ReciboCedenteParte4);
+                html2.Append(Html.ReciboCedenteParte5);
+                html2.Append(Html.ReciboCedenteParte6);
+                html2.Append(Html.ReciboCedenteParte7);
+                html2.Append(Html.ReciboCedenteParte8);
+                html2.Append(Html.ReciboCedenteParte9);
+                html2.Append(Html.ReciboCedenteParte10.Replace("Ficha de Compensação",""));
+                //html2.Append(Html.ReciboCedenteParte11);
+                html2.Append(Html.ReciboCedenteParte12);
+                html.Append(html2);
+                html.Append(GeraHtmlReciboCedente());
+            }
+            else
+            {
+                html.Append(GeraHtmlCarne("", GeraHtmlReciboCedente()));
+            }
+
+            var dataVencimento = Boleto.DataVencimento.ToString("dd/MM/yyyy");
+
+            if (MostrarContraApresentacaoNaDataVencimento)
+                dataVencimento = "Contra Apresentação";
+
+            if (String.IsNullOrWhiteSpace(_vLocalLogoCedente))
+                _vLocalLogoCedente = urlImagemLogo;
+
+            String htmlFinal = html
+                .Replace("@CODIGOBANCO", Utils.FormatCode(Boleto.Banco.Codigo.ToString(), 3))
+                .Replace("@DIGITOBANCO", Boleto.Banco.Digito.ToString())
+                .Replace("@URLIMAGEMLOGO", urlImagemLogo)
+                .Replace("@URLIMGCEDENTE", _vLocalLogoCedente)
+                .Replace("@URLIMAGEMBARRA", urlImagemBarra)
+                .Replace("@LINHADIGITAVEL", Boleto.CodigoBarra.LinhaDigitavel)
+                .Replace("@LOCALPAGAMENTO", Boleto.Banco.Cedente.ContaBancaria.LocalPagamento)
+                .Replace("@MENSAGEMFIXATOPOBOLETO", Boleto.Banco.Cedente.ContaBancaria.MensagemFixaTopoBoleto)
+                .Replace("@MENSAGEMFIXASACADO", Boleto.Banco.Cedente.ContaBancaria.MensagemFixaSacado)
+                .Replace("@DATAVENCIMENTO", dataVencimento)
+                .Replace("@CEDENTE_BOLETO", !Boleto.Banco.Cedente.MostrarCNPJnoBoleto ? Boleto.Banco.Cedente.Nome : string.Format("{0} - {1}", Boleto.Banco.Cedente.Nome, Utils.FormataCNPJ(Boleto.Banco.Cedente.CPFCNPJ)))
+                .Replace("@CEDENTE", Boleto.Banco.Cedente.Nome)
+                .Replace("@DATADOCUMENTO", Boleto.DataEmissao.ToString("dd/MM/yyyy"))
+                .Replace("@NUMERODOCUMENTO", Boleto.NumeroDocumento)
+                .Replace("@ESPECIEDOCUMENTO", Boleto.EspecieDocumento.ToString())
+                .Replace("@DATAPROCESSAMENTO", Boleto.DataProcessamento.ToString("dd/MM/yyyy"))
+                .Replace("@NOSSONUMERO", Boleto.NossoNumeroFormatado)
+                .Replace("@CARTEIRA", Boleto.CarteiraImpressaoBoleto)
+                .Replace("@ESPECIE", Boleto.EspecieMoeda)
+                .Replace("@QUANTIDADE", (Boleto.QuantidadeMoeda == 0 ? "" : Boleto.QuantidadeMoeda.ToString()))
+                .Replace("@VALORDOCUMENTO", Boleto.ValorMoeda)
+                .Replace("@=VALORDOCUMENTO", (Boleto.ValorTitulo == 0 ? "" : Boleto.ValorTitulo.ToString("R$ ##,##0.00")))
+                .Replace("@VALORCOBRADO", "")
+                .Replace("@OUTROSACRESCIMOS", "")
+                .Replace("@OUTRASDEDUCOES", "")
+                .Replace("@DESCONTOS", "")
+                .Replace("@AGENCIACONTA", Boleto.Banco.Cedente.CodigoFormatado)
+                .Replace("@SACADO", sacado)
+                .Replace("@ENDERECOSACADO", enderecoSacado)
+                .Replace("@AVALISTA", avalista)
+                .Replace("@AGENCIACODIGOCEDENTE", Boleto.Banco.Cedente.CodigoFormatado)
+                .Replace("@CPFCNPJ", Boleto.Banco.Cedente.CPFCNPJ)
+                .Replace("@MORAMULTA", "")
+                .Replace("@AUTENTICACAOMECANICA", "")
+                .Replace("@USODOBANCO", Boleto.UsoBanco)
+                .Replace("@IMAGEMCODIGOBARRA", imagemCodigoBarras)
+                .Replace("@ACEITE", Boleto.Aceite).ToString()
+                .Replace("@ENDERECOCEDENTE_BOLETO", MostrarEnderecoCedente ? string.Format(" - {0}", enderecoCedente) : "")
+                .Replace("@ENDERECOCEDENTE", MostrarEnderecoCedente ? enderecoCedente : "")
+                .Replace("@INSTRUCOES", Boleto.MensagemInstrucoesCaixa);
+
+            return htmlFinal;
+        }
+
         #endregion Html
 
         #region Geração do Html OffLine
@@ -474,7 +632,7 @@ namespace Boleto2Net
             {
                 html.Append(textoNoComecoDoEmail);
             }
-            html.Append(MontaHtml(srcLogo, srcBarra, "<img src=\"" + srcCodigoBarra + "\" alt=\"Código de Barras\" />"));
+            html.Append(MontaHtmlItau(srcLogo, srcBarra, "<img src=\"" + srcCodigoBarra + "\" alt=\"Código de Barras\" />"));
             HtmlOfflineFooter(html);
             return html;
         }
@@ -895,7 +1053,6 @@ namespace Boleto2Net
 
         public byte[] MontaBytesPDF(bool convertLinhaDigitavelToImage = false)
         {
-
             return (new NReco.PdfGenerator.HtmlToPdfConverter()).GeneratePdf(MontaHtmlEmbedded(convertLinhaDigitavelToImage, true));
         }
         #endregion Geração do Html OffLine

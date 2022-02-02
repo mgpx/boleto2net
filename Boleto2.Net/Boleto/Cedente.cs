@@ -11,6 +11,9 @@ namespace Boleto2Net
         public string CodigoDV { get; set; } = string.Empty;
         public string CodigoFormatado { get; set; } = string.Empty;
         public string CodigoTransmissao { get; set; } = string.Empty;
+
+        
+
         public string CPFCNPJ
         {
             get

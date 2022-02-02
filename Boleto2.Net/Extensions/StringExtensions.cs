@@ -140,5 +140,85 @@ namespace Boleto2Net.Extensions
                 digito = (10 - resto).ToString();
             return digito;
         }
+
+        public static string CalcularDVSicredi(this string texto)
+        {
+            /* Variáveis
+             * -------------
+             * d - Dígito
+             * s - Soma
+             * p - Peso
+             * b - Base
+             * r - Resto
+             */
+
+            int d, s = 0, p = 2, b = 9;
+            //Atribui os pesos de {2..9}
+            for (int i = texto.Length - 1; i >= 0; i--)
+            {
+                s = s + (Convert.ToInt32(texto.Substring(i, 1)) * p);
+                if (p < b)
+                    p = p + 1;
+                else
+                    p = 2;
+            }
+            d = 11 - (s % 11);//Calcula o Módulo 11;
+            if (d > 9)
+                d = 0;
+            return d.ToString();
+        }
+
+        public static string CalcularDVSicredi(String agencia, String posto, String cedente, String ano, String seq, String byteGer = "2")
+        {
+            if (byteGer == "1")
+                throw new ArgumentOutOfRangeException("Não pode ser 1");
+
+            String dados = agencia.PadLeft(4, '0') + posto.PadLeft(2, '0') + cedente.PadLeft(5, '0') + ano + byteGer + seq.PadLeft(5, '0');
+            int soma = 0;
+            for (int controle = 0; controle < dados.Length; controle++)
+            {
+                int n = int.Parse(dados.Substring(controle, 1));
+
+                if (controle == 0 || controle == 8 || controle == 16)
+                {
+                    soma += n * 4;
+                }
+                else if (controle == 1 || controle == 9 || controle == 17)
+                {
+                    soma += n * 3;
+                }
+                else if (controle == 2 || controle == 10 || controle == 18)
+                {
+                    soma += n * 2;
+                }
+                else if (controle == 3 || controle == 11)
+                {
+                    soma += n * 9;
+                }
+                else if (controle == 4 || controle == 12)
+                {
+                    soma += n * 8;
+                }
+                else if (controle == 5 || controle == 13)
+                {
+                    soma += n * 7;
+                }
+                else if (controle == 6 || controle == 14)
+                {
+                    soma += n * 6;
+                }
+                else if (controle == 7 || controle == 15)
+                {
+                    soma += n * 5;
+                }
+            }
+
+            // se for maqior que 9 será 0
+            string digitoAutoConferencia = 11 - (soma % 11) > 9 ? "0" : (11 - (soma % 11)).ToString();
+
+            //return dados.Substring(11) + digitoAutoConferencia; // Número no Banco já Montado
+            return  digitoAutoConferencia; // Número no Banco já Montado
+        }
+    
     }
 }

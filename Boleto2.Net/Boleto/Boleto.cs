@@ -1,6 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Boleto2Net
 {
@@ -113,6 +115,16 @@ namespace Boleto2Net
         public string MensagemArquivoRemessa { get; set; } = string.Empty;
         public string RegistroArquivoRetorno { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Informar o numero da parcela (Usado no codigo do campo livre do banco sicoob)
+        /// </summary>
+        public Int32 Parcela { get; set; } = 1;
+
+        /// <summary>
+        /// Par uso do sicredi
+        /// </summary>
+        public String ByteNossoNumero { get; set; } = "2";
+
         public IBanco Banco { get; set; }
         public Sacado Sacado { get; set; } = new Sacado();
         public Sacado Avalista { get; set; } = new Sacado();
@@ -120,6 +132,35 @@ namespace Boleto2Net
         public ObservableCollection<GrupoDemonstrativo> Demonstrativos { get; } = new ObservableCollection<GrupoDemonstrativo>();
 
         public void ValidarDados()
+        {
+            ValidarDadosBasico();
+
+            Banco.ValidaBoleto(this);
+            Banco.FormataNossoNumero(this);
+            Boleto2Net.Banco.FormataCodigoBarra(this);
+            Boleto2Net.Banco.FormataLinhaDigitavel(this);
+        }
+
+        /// <summary>
+        /// Este método permite passar o código de barras e linha digitavel salva em seu banco, por exemplo, e confronta-las
+        /// </summary>
+        /// <param name="codBarras"></param>
+        /// <param name="linhaDigitavel"></param>
+        public void ValidarDadosChaves(String codBarras, String linhaDigitavel)
+        {
+            Banco.ValidaBoleto(this);
+            Banco.FormataNossoNumero(this);
+            Boleto2Net.Banco.FormataCodigoBarra(this);
+            Boleto2Net.Banco.FormataLinhaDigitavel(this);
+
+            if (this.CodigoBarra.CodigoDeBarras != codBarras)
+                throw new Exception($"O código de barras informado é diferente do calculado. Informado {codBarras} / Calculado {this.CodigoBarra.CodigoDeBarras}");
+            var linhaDigSemFormatacao = string.Join("", this.CodigoBarra.LinhaDigitavel.ToCharArray().Where(Char.IsDigit));
+            if (linhaDigSemFormatacao != linhaDigitavel)
+                throw new Exception($"A linha digivel informada é diferente do calculado. Informado {linhaDigitavel} / Calculado {this.CodigoBarra.LinhaDigitavel}");
+        }
+
+        private void ValidarDadosBasico()
         {
             // Banco Obrigatório
             if (Banco == null)
@@ -148,11 +189,6 @@ namespace Boleto2Net
             // Aceite
             if ((Aceite != "A") & (Aceite != "N"))
                 throw new Exception("Aceite do Boleto deve ser definido com A ou N");
-
-            Banco.ValidaBoleto(this);
-            Banco.FormataNossoNumero(this);
-            Boleto2Net.Banco.FormataCodigoBarra(this);
-            Boleto2Net.Banco.FormataLinhaDigitavel(this);
         }
     }
 }

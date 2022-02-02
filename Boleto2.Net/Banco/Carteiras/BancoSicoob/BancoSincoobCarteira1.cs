@@ -36,7 +36,13 @@ namespace Boleto2Net
         {
             var cedente = boleto.Banco.Cedente;
             var contaBancaria = cedente.ContaBancaria;
-            return $"{boleto.Carteira}{contaBancaria.Agencia}{boleto.VariacaoCarteira}{cedente.Codigo}{cedente.CodigoDV}{boleto.NossoNumero}{boleto.NossoNumeroDV}001";
+            if (boleto.Parcela <= 0)
+                boleto.Parcela = 1;
+
+
+            //return $"{boleto.Carteira}{contaBancaria.Agencia}{boleto.VariacaoCarteira}{cedente.Codigo}{cedente.CodigoDV}{boleto.NossoNumero}{boleto.NossoNumeroDV}001";
+            return $"{boleto.Carteira}{contaBancaria.Agencia}{boleto.VariacaoCarteira}{cedente.Codigo}{cedente.CodigoDV}{boleto.NossoNumero}{boleto.NossoNumeroDV}{boleto.Parcela.ToString("000")}";
+            
         }
     }
 }

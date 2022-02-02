@@ -8,6 +8,8 @@ namespace Boleto2Net
         Caixa = 104,
         Bradesco = 237,
         Itau = 341,
-        Sicoob = 756
+        Sicoob = 756,
+        Sicredi = 748,
+        Nbcbank = 753
     }
 }

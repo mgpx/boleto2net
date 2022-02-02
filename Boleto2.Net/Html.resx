@@ -489,6 +489,7 @@
 				&lt;/tr&gt;
 		&lt;/table&gt;</value>
   </data>
+  
   <data name="ReciboSacadoParte1" xml:space="preserve">
     <value>&lt;table class="w666"&gt;
 				&lt;tr&gt;
@@ -513,6 +514,7 @@
   </data>
   <data name="ReciboSacadoParte3" xml:space="preserve">
     <value>&lt;table class="w666"&gt;
+    
 				&lt;tr class="ct h13 At"&gt;
 						&lt;td class="w298"&gt;Beneficiário&lt;/td&gt;
 						&lt;td class="w126"&gt;Agência / Código do Beneficiário&lt;/td&gt;

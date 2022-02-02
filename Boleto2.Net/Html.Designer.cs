@@ -19,7 +19,7 @@ namespace Boleto2Net {
     // através de uma ferramenta como ResGen ou Visual Studio.
     // Para adicionar ou remover um associado, edite o arquivo .ResX e execute ResGen novamente
     // com a opção /str, ou recrie o projeto do VS.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Html {
@@ -660,6 +660,7 @@ namespace Boleto2Net {
         
         /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a &lt;table class=&quot;w666&quot;&gt;
+        ///    
         ///				&lt;tr class=&quot;ct h13 At&quot;&gt;
         ///						&lt;td class=&quot;w298&quot;&gt;Beneficiário&lt;/td&gt;
         ///						&lt;td class=&quot;w126&quot;&gt;Agência / Código do Beneficiário&lt;/td&gt;

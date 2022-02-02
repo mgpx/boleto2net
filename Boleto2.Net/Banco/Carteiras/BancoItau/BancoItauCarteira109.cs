@@ -19,17 +19,30 @@ namespace Boleto2Net
             if (IsNullOrWhiteSpace(boleto.NossoNumero))
                 throw new Exception("Nosso Número não informado.");
 
-            // Nosso número não pode ter mais de 8 dígitos
-            if (boleto.NossoNumero.Length > 8)
-                throw new Exception($"Nosso Número ({boleto.NossoNumero}) deve conter 8 dígitos.");
 
-            boleto.NossoNumero = boleto.NossoNumero.PadLeft(8, '0');
-            boleto.NossoNumeroDV = (boleto.Banco.Cedente.ContaBancaria.Agencia + boleto.Banco.Cedente.ContaBancaria.Conta + boleto.Carteira + boleto.NossoNumero).CalcularDVItau();
-            boleto.NossoNumeroFormatado = $"{boleto.Carteira}/{boleto.NossoNumero}-{boleto.NossoNumeroDV}";
+            
+            // Nosso número não pode ter mais de 8 dígitos
+            if (boleto.NossoNumero.Length <= 8)
+            {
+                boleto.NossoNumero = boleto.NossoNumero.PadLeft(8, '0');
+                boleto.NossoNumeroDV = (boleto.Banco.Cedente.ContaBancaria.Agencia + boleto.Banco.Cedente.ContaBancaria.Conta + boleto.Carteira + boleto.NossoNumero).CalcularDVItau();
+                boleto.NossoNumeroFormatado = $"{boleto.Carteira}/{boleto.NossoNumero}-{boleto.NossoNumeroDV}";
+            }
+            else if (boleto.NossoNumero.Length == 14)
+            {
+                boleto.NossoNumeroFormatado = boleto.NossoNumero;
+                boleto.NossoNumero = boleto.NossoNumero.Substring(4, 8);
+                boleto.NossoNumeroDV = boleto.NossoNumeroFormatado.Substring(13, 1);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public string FormataCodigoBarraCampoLivre(Boleto boleto)
         {
+            //return $"{boleto.Carteira}{boleto.NossoNumero}{boleto.NossoNumeroDV}{boleto.Banco.Cedente.ContaBancaria.Agencia}{boleto.Banco.Cedente.ContaBancaria.Conta}{boleto.Banco.Cedente.ContaBancaria.DigitoConta}000";
             return $"{boleto.Carteira}{boleto.NossoNumero}{boleto.NossoNumeroDV}{boleto.Banco.Cedente.ContaBancaria.Agencia}{boleto.Banco.Cedente.ContaBancaria.Conta}{boleto.Banco.Cedente.ContaBancaria.DigitoConta}000";
         }
     }
