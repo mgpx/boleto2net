@@ -185,8 +185,9 @@ namespace Boleto2.Net.WinForms
             //Exported.GerarPDFOperacao(this.textBox1.Text, true, @"C:\Temp\", false, ref retorno);
             //Exported.GerarInfoBoleto("003", "2021-01-16", "1000", out retorno);
             //Exported.GerarPDFTransacao(this.textBox1.Text, false, @"C:\Temp\", true, ref retorno);
-            Exported.GerarPDFTransacao(this.textBox1.Text, true, @"C:\Temp", false, ref retorno);
-            MessageBox.Show("ret: " + retorno);
+            Exported.GerarPDFTransacao(this.textBox1.Text, true, @"C:\Temp", this.cbEnviarEmail.Checked, ref retorno);
+            
+            MessageBox.Show("Retorno: " + retorno);
         }
 
         private void btnTeste_Click(object sender, EventArgs e)

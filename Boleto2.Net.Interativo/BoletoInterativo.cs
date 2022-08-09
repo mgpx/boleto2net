@@ -21,7 +21,7 @@ namespace Boleto2.Net.Interativo
 
         private List<Pendfin> pendfins;
 
-        private String[] mBancosSuportados = new string[] { "753", "748", "341" };
+        private String[] mBancosSuportados = new string[] { "753", "748", "341", "237" };
 
         public BoletoInterativo(List<String> operacao)
         {
@@ -174,6 +174,10 @@ namespace Boleto2.Net.Interativo
             var splitDest1 = cliente.clie_email.Split(';').ToList();
             var splitDest2 = cliente.clie_cobremail.Split(';').ToList();
 
+            //splitDest1.Clear();
+            //splitDest2.Clear();
+            //splitDest1.Add("marco@interativosistemas.com.br");
+
             //MessageBox.Show("Mandando por email para: " + cliente.clie_email + cliente.clie_cobremail);
             for (int i = 0; i < splitDest1.Count; i++)
                 if (!String.IsNullOrEmpty(splitDest1[i]))
@@ -240,6 +244,12 @@ namespace Boleto2.Net.Interativo
             objSmtpClient.Credentials = new System.Net.NetworkCredential(cnfg_emailuser, cnfg_emailsenha);
             objSmtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
             objSmtpClient.Timeout = 10000;
+
+            if (objSmtpClient.Host == "smtp.gmail.com")
+            {
+                objSmtpClient.Port = 587;
+            }
+
             objSmtpClient.Send(mail);
 
             for (int i = 0; i < mail.Attachments.Count; i++)
@@ -321,6 +331,12 @@ namespace Boleto2.Net.Interativo
             int seq = 0;
             boleto.NossoNumero = pendfin.pfin_nossonumero;
 
+            if (enuBmanco == Bancos.Bradesco)
+            {
+                boleto.NossoNumero = pendfin.pfin_nossonumero.Substring(2, 11);
+                boleto.NossoNumeroDV = pendfin.pfin_nossonumero.Substring(13, 1);
+            }
+
             boleto.ValorTitulo = pendfin.pfin_valor;
             boleto.Aceite = "N";
             boleto.EspecieDocumento = TipoEspecieDocumento.DM;
@@ -331,11 +347,11 @@ namespace Boleto2.Net.Interativo
             boleto.ValorDesconto = pendfin.pfin_desconto;
 
             Decimal percMulta = 0;
-            if(enuBmanco == Bancos.Sicredi)
+            if(enuBmanco == Bancos.Sicredi || enuBmanco == Bancos.Bradesco)
                 percMulta = Convert.ToDecimal(det["008"].Replace('.', ',') ?? "0");
             else if (enuBmanco == Bancos.Itau)
                 percMulta = Convert.ToDecimal(det["015"].Replace('.', ',') ?? "0");
-
+            
             if (percMulta > 0)
             {
                 boleto.DataMulta = boleto.DataVencimento.AddDays(1);
@@ -420,7 +436,7 @@ namespace Boleto2.Net.Interativo
                 boleto.DiasProtesto = Convert.ToInt32(det["010"]);
             }
             //nbcbank sempre vai ser protesto
-            else if (enuBmanco == Bancos.Nbcbank)
+            else if (enuBmanco == Bancos.Nbcbank || enuBmanco == Bancos.Bradesco)
             {
                 boleto.CodigoProtesto = TipoCodigoProtesto.ProtestarDiasUteis;
                 boleto.DiasProtesto = Convert.ToInt32(det["013"]);
@@ -452,12 +468,9 @@ namespace Boleto2.Net.Interativo
                 boleto.Avalista.Endereco.LogradouroNumero = empresa.empr_numero;
                 boleto.Avalista.Endereco.UF = empresa.empr_uf;
                 boleto.Avalista.Endereco.LogradouroEndereco = empresa.empr_endereco;
-
-                
-                    
+   
             }
             
-
             boleto.ValidarDadosChaves(pendfin.pfin_codbarras, pendfin.pfin_linhadig);
             boletos.Add(boleto);
 
@@ -488,6 +501,9 @@ namespace Boleto2.Net.Interativo
                     break;
                 case Bancos.Nbcbank:
                     ibanco = GerarBoletoInfoCedenteNBCBank(integracaoBancaria, det);
+                    break;
+                case Bancos.Bradesco:
+                    ibanco = GerarBoletoInfoCedenteBradesco(integracaoBancaria, det);
                     break;
                 default:
                     throw new NotImplementedException("Função não suportada");
@@ -627,6 +643,52 @@ namespace Boleto2.Net.Interativo
             return banco;
         }
 
+        public static IBanco GerarBoletoInfoCedenteBradesco(IntegracaoBancaria integracaoBancaria, IntegracaoBancariaDet det)
+        {
+            var banco = Banco.Instancia(Bancos.Bradesco);
+
+            banco.Cedente = new Cedente
+            {
+                CPFCNPJ = det["016"],
+                Nome = det["002"],
+                Observacoes = string.Empty,
+                ContaBancaria = new ContaBancaria
+                {
+                    //Posto = det["002"],
+                    Agencia = det["004"],
+                    DigitoAgencia = det["018"],
+                    OperacaoConta = string.Empty,
+                    Conta = det["005"],
+                    DigitoConta = det["006"],
+                    //DigitoConta = this.Conta.NumeroDigito,
+                    CarteiraPadrao = "09", // this.Conta.CarteiraBoleto,
+                    VariacaoCarteiraPadrao = String.Empty, //this.Conta.VariacaoCarteira,
+                    TipoCarteiraPadrao = TipoCarteira.CarteiraCobrancaSimples,
+                    //TipoFormaCadastramento = pendfin.itbc_tpproc == "001" ? TipoFormaCadastramento.SemRegistro : TipoFormaCadastramento.ComRegistro,
+                    TipoImpressaoBoleto = TipoImpressaoBoleto.Empresa,
+                    TipoDocumento = TipoDocumento.Tradicional,
+                    LocalPagamento = $"{det["101"]}<br/>{det["102"]}<br/>{det["103"]}<br/>{det["104"]}"  //"ATÉ O VENCIMENTO, PAGUE EM QUALQUER BANCO OU CORRESPONDENTE NÃO BANCÁRIO. <br/> APÓS O VENCIMENTO, ACESSE ITAU.COM.BR / BOLETOS E PAGUE EM QUALQUER BANCO  <br/> OU CORRESPONDENTE NÃO BANCÁRIO."
+                },
+                Codigo = det["001"].Substring(0, 6).PadLeft(7, '0'),
+                CodigoDV = det["001"].Substring(6, 1),
+                CodigoTransmissao = string.Empty,
+                CodigoFormatado = $"{det["001"].Substring(0, 4)}-{det["018"]}/{det["005"]}-{det["006"]}"
+                //det["001"].Substring(0, 4) + "/" + det["001"].Substring(4, 5) + det["001"].Substring(9, 1)
+                //Endereco = new Boleto2Net.Endereco
+                //{
+                //    LogradouroEndereco = empresa.empr_endereco,
+                //    LogradouroNumero = empresa.empr_numero,
+                //    LogradouroComplemento = empresa.empr_complemento,
+                //    Bairro = empresa.empr_bairro,
+                //    Cidade = empresa.empr_cidade,
+                //    UF = empresa.empr_uf,
+                //    CEP = empresa.empr_cep,
+                //}
+            };
+
+            return banco;
+        }
+
         //public static IBanco GerarBoletoInfoCedenteCaixa(IntegracaoBancaria integracaoBancaria, IntegracaoBancariaDet det)
         //{
 
@@ -671,6 +733,8 @@ namespace Boleto2.Net.Interativo
                     PdfSharp.Pdf.PdfPage page = inputDocument.Pages[idx];
                     outputDocument.AddPage(page);
                 }
+
+                inputDocument.Close();
 
             }
             outputDocument.Save(msPDFOut, false);

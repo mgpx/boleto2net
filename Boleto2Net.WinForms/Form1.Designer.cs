@@ -36,11 +36,12 @@
             this.label1 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.btnTeste = new System.Windows.Forms.Button();
+            this.cbEnviarEmail = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // btnSicredi
             // 
-            this.btnSicredi.Location = new System.Drawing.Point(422, 54);
+            this.btnSicredi.Location = new System.Drawing.Point(493, 46);
             this.btnSicredi.Name = "btnSicredi";
             this.btnSicredi.Size = new System.Drawing.Size(118, 48);
             this.btnSicredi.TabIndex = 0;
@@ -50,7 +51,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(601, 54);
+            this.button1.Location = new System.Drawing.Point(672, 46);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 1;
@@ -60,7 +61,7 @@
             // 
             // btnNbcBank
             // 
-            this.btnNbcBank.Location = new System.Drawing.Point(422, 108);
+            this.btnNbcBank.Location = new System.Drawing.Point(493, 100);
             this.btnNbcBank.Name = "btnNbcBank";
             this.btnNbcBank.Size = new System.Drawing.Size(118, 48);
             this.btnNbcBank.TabIndex = 0;
@@ -70,7 +71,7 @@
             // 
             // btnGerarSicoob
             // 
-            this.btnGerarSicoob.Location = new System.Drawing.Point(422, 162);
+            this.btnGerarSicoob.Location = new System.Drawing.Point(493, 154);
             this.btnGerarSicoob.Name = "btnGerarSicoob";
             this.btnGerarSicoob.Size = new System.Drawing.Size(118, 48);
             this.btnGerarSicoob.TabIndex = 2;
@@ -81,9 +82,9 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(104, 28);
+            this.textBox1.Location = new System.Drawing.Point(99, 28);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 20);
+            this.textBox1.Size = new System.Drawing.Size(146, 20);
             this.textBox1.TabIndex = 3;
             // 
             // label1
@@ -97,7 +98,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(74, 65);
+            this.button2.Location = new System.Drawing.Point(99, 59);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(146, 35);
             this.button2.TabIndex = 5;
@@ -107,7 +108,7 @@
             // 
             // btnTeste
             // 
-            this.btnTeste.Location = new System.Drawing.Point(74, 207);
+            this.btnTeste.Location = new System.Drawing.Point(493, 265);
             this.btnTeste.Name = "btnTeste";
             this.btnTeste.Size = new System.Drawing.Size(139, 38);
             this.btnTeste.TabIndex = 6;
@@ -115,11 +116,22 @@
             this.btnTeste.UseVisualStyleBackColor = true;
             this.btnTeste.Click += new System.EventHandler(this.btnTeste_Click);
             // 
+            // cbEnviarEmail
+            // 
+            this.cbEnviarEmail.AutoSize = true;
+            this.cbEnviarEmail.Location = new System.Drawing.Point(266, 69);
+            this.cbEnviarEmail.Name = "cbEnviarEmail";
+            this.cbEnviarEmail.Size = new System.Drawing.Size(84, 17);
+            this.cbEnviarEmail.TabIndex = 7;
+            this.cbEnviarEmail.Text = "Enviar Email";
+            this.cbEnviarEmail.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(288, 353);
+            this.ClientSize = new System.Drawing.Size(395, 145);
+            this.Controls.Add(this.cbEnviarEmail);
             this.Controls.Add(this.btnTeste);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.label1);
@@ -129,7 +141,7 @@
             this.Controls.Add(this.btnNbcBank);
             this.Controls.Add(this.btnSicredi);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Teste Boleto";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -145,6 +157,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button btnTeste;
+        private System.Windows.Forms.CheckBox cbEnviarEmail;
     }
 }
 

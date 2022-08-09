@@ -57,7 +57,12 @@ namespace Boleto2.Net.Interativo
 
             try
             {
-                List<String> operacoes = BoletoInterativo.ObterOperacoes(transacao);
+                List<String> operacoes = new List<string>();
+                if (transacao.Length == 10)
+                    operacoes = BoletoInterativo.ObterOperacoes(transacao);
+                else if (transacao.Length == 11)
+                    operacoes.Add(transacao);
+
                 InternalGerarPDFOperacao(operacoes, mostrarTela, diretorio, enviarEmail, ref retorno);
             }catch(Exception e)
             {

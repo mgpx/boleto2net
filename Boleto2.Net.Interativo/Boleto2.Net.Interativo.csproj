@@ -56,7 +56,7 @@
       <HintPath>..\packages\PDFsharp.1.50.5147\lib\net20\PdfSharp.Charting.dll</HintPath>
     </Reference>
     <Reference Include="RGiesecke.DllExport.Metadata, Version=1.0.0.0, Culture=neutral, PublicKeyToken=8f52d83c1a22df51, processorArchitecture=MSIL">
-      <HintPath>..\packages\UnmanagedExports.1.2.7\lib\net\RGiesecke.DllExport.Metadata.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Projetos\Forca_Vendas\WebService\packages\UnmanagedExports.1.2.7\lib\net\RGiesecke.DllExport.Metadata.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -159,5 +159,5 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\PdfiumViewer.Native.x86.no_v8-no_xfa.2018.4.8.256\build\PdfiumViewer.Native.x86.no_v8-no_xfa.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\PdfiumViewer.Native.x86.no_v8-no_xfa.2018.4.8.256\build\PdfiumViewer.Native.x86.no_v8-no_xfa.props'))" />
   </Target>
-  <Import Project="../packages/UnmanagedExports.1.2.7/tools/RGiesecke.DllExport.targets" Condition="Exists('../packages/UnmanagedExports.1.2.7/tools/RGiesecke.DllExport.targets')" />
+  <Import Project="../../../../../../../Projetos/Forca_Vendas/WebService/packages/UnmanagedExports.1.2.7/tools/RGiesecke.DllExport.targets" Condition="Exists('../../../../../../../Projetos/Forca_Vendas/WebService/packages/UnmanagedExports.1.2.7/tools/RGiesecke.DllExport.targets')" />
 </Project>
