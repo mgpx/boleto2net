@@ -24,7 +24,7 @@ namespace Boleto2.Net.Interativo
         public static void GerarPDF(String operacoes, Boolean enviarEmail, String diretorio, [MarshalAs(UnmanagedType.BStr)] ref String retorno)
         {
             retorno = String.Empty;
-            System.Windows.Forms.MessageBox.Show("OK");
+            //System.Windows.Forms.MessageBox.Show($"Operações:{operacoes}\nEmail:{enviarEmail}\nDir:{diretorio}" );
             try
             {
                 if (operacoes == null || operacoes.Length == 0)
@@ -33,9 +33,12 @@ namespace Boleto2.Net.Interativo
                     return;
                 }
 
+
                 BoletoInterativo boletoInterativo = new BoletoInterativo(operacoes.Split(new char[] { ';' }).ToList());
                 boletoInterativo.SetDirBase(diretorio);
                 boletoInterativo.Gerar();
+
+                //System.Windows.Forms.MessageBox.Show($"Gerado");
 
                 if (enviarEmail)
                     boletoInterativo.EnviarEmail();
@@ -43,6 +46,7 @@ namespace Boleto2.Net.Interativo
             catch(Exception e)
             {
                 retorno = e.ToString();
+                System.Windows.Forms.MessageBox.Show(retorno);
             }
         }
 

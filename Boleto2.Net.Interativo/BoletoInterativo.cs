@@ -174,6 +174,9 @@ namespace Boleto2.Net.Interativo
             var splitDest1 = cliente.clie_email.Split(';').ToList();
             var splitDest2 = cliente.clie_cobremail.Split(';').ToList();
 
+
+            //System.Windows.Forms.MessageBox.Show($"Enviando emails: {String.Join(Environment.NewLine, splitDest1)}");
+            //System.Windows.Forms.MessageBox.Show($"Enviando emails: {String.Join(Environment.NewLine, splitDest2)}");
             //splitDest1.Clear();
             //splitDest2.Clear();
             //splitDest1.Add("marco@interativosistemas.com.br");
@@ -186,6 +189,8 @@ namespace Boleto2.Net.Interativo
             for (int i = 0; i < splitDest2.Count; i++)
                 if (!String.IsNullOrEmpty(splitDest2[i]))
                     mail.To.Add(new MailAddress(splitDest2[i]));
+
+            
 
             if (mail.To.Count == 0)
                 return false;
@@ -258,6 +263,7 @@ namespace Boleto2.Net.Interativo
             mail.Dispose();
             objSmtpClient.Dispose();
 
+            //System.Windows.Forms.MessageBox.Show($"Enviando emails: OK");
             return true;
         }
 

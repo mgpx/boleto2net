@@ -188,6 +188,84 @@ namespace Boleto2.Net.WinForms
             Exported.GerarPDFTransacao(this.textBox1.Text, true, @"C:\Temp", this.cbEnviarEmail.Checked, ref retorno);
             
             MessageBox.Show("Retorno: " + retorno);
+
+            var contaBancaria = new ContaBancaria
+            {
+                Agencia = "3037",
+                DigitoAgencia = "6",
+                Conta = "108785",
+                DigitoConta = "1",
+                CarteiraPadrao = "1",
+                VariacaoCarteiraPadrao = "01",
+                TipoCarteiraPadrao = TipoCarteira.CarteiraCobrancaSimples,
+                TipoFormaCadastramento = TipoFormaCadastramento.ComRegistro,
+                TipoImpressaoBoleto = TipoImpressaoBoleto.Empresa
+            };
+            var _banco = Banco.Instancia(Bancos.Sicoob);
+            _banco.Cedente = GerarCedente("108785", "1", "", contaBancaria);
+            _banco.FormataCedente();
+
+            var boleto = new Boleto(_banco)
+            {
+                DataVencimento = new DateTime(2022,08,24),
+                ValorTitulo = 457.30m,
+                NossoNumero = "0000509",
+                NumeroDocumento = "16",
+                EspecieDocumento = TipoEspecieDocumento.DM,
+                Sacado = new Sacado()
+            };
+
+            //Ação
+            boleto.ValidarDados();
+
+            ////Assertivas
+            //Assert.That(boleto.CodigoBarra.DigitoVerificador, Is.EqualTo(digitoVerificador), $"Dígito Verificador diferente de {digitoVerificador}");
+            //Assert.That(boleto.NossoNumeroFormatado, Is.EqualTo(nossoNumeroFormatado), "Nosso número inválido");
+            //Assert.That(boleto.CodigoBarra.CodigoDeBarras, Is.EqualTo(codigoDeBarras), "Código de Barra inválido");
+            //Assert.That(boleto.CodigoBarra.LinhaDigitavel, Is.EqualTo(linhaDigitavel), "Linha digitável inválida");
+
+        }
+
+        internal static Cedente GerarCedente(string codigoCedente, string digitoCodigoCedente, string codigoTransmissao, ContaBancaria contaBancaria)
+        {
+            return new Cedente
+            {
+                CPFCNPJ = "86.875.666/0001-09",
+                Nome = "Cedente Teste",
+                Codigo = codigoCedente,
+                CodigoDV = digitoCodigoCedente,
+                Endereco = new Endereco
+                {
+                    LogradouroEndereco = "Rua Teste do Cedente",
+                    LogradouroNumero = "789",
+                    LogradouroComplemento = "Cj 333",
+                    Bairro = "Bairro",
+                    Cidade = "Cidade",
+                    UF = "SP",
+                    CEP = "65432987"
+                },
+                ContaBancaria = contaBancaria
+            };
+        }
+
+        internal static Sacado GerarSacado()
+        {
+            return new Sacado
+            {
+                CPFCNPJ = "443.316.101-28",
+                Nome = "Sacado Teste PF",
+                Observacoes = "Matricula 678/9",
+                Endereco = new Endereco
+                {
+                    LogradouroEndereco = "Rua Testando",
+                    LogradouroNumero = "456",
+                    Bairro = "Bairro",
+                    Cidade = "Cidade",
+                    UF = "SP",
+                    CEP = "56789012"
+                }
+            };
+           
         }
 
         private void btnTeste_Click(object sender, EventArgs e)
