@@ -189,34 +189,34 @@ namespace Boleto2.Net.WinForms
             
             MessageBox.Show("Retorno: " + retorno);
 
-            var contaBancaria = new ContaBancaria
-            {
-                Agencia = "3037",
-                DigitoAgencia = "6",
-                Conta = "108785",
-                DigitoConta = "1",
-                CarteiraPadrao = "1",
-                VariacaoCarteiraPadrao = "01",
-                TipoCarteiraPadrao = TipoCarteira.CarteiraCobrancaSimples,
-                TipoFormaCadastramento = TipoFormaCadastramento.ComRegistro,
-                TipoImpressaoBoleto = TipoImpressaoBoleto.Empresa
-            };
-            var _banco = Banco.Instancia(Bancos.Sicoob);
-            _banco.Cedente = GerarCedente("108785", "1", "", contaBancaria);
-            _banco.FormataCedente();
+            //var contaBancaria = new ContaBancaria
+            //{
+            //    Agencia = "3037",
+            //    DigitoAgencia = "6",
+            //    Conta = "108785",
+            //    DigitoConta = "1",
+            //    CarteiraPadrao = "1",
+            //    VariacaoCarteiraPadrao = "01",
+            //    TipoCarteiraPadrao = TipoCarteira.CarteiraCobrancaSimples,
+            //    TipoFormaCadastramento = TipoFormaCadastramento.ComRegistro,
+            //    TipoImpressaoBoleto = TipoImpressaoBoleto.Empresa
+            //};
+            //var _banco = Banco.Instancia(Bancos.Sicoob);
+            //_banco.Cedente = GerarCedente("108785", "1", "", contaBancaria);
+            //_banco.FormataCedente();
 
-            var boleto = new Boleto(_banco)
-            {
-                DataVencimento = new DateTime(2022,08,24),
-                ValorTitulo = 457.30m,
-                NossoNumero = "0000509",
-                NumeroDocumento = "16",
-                EspecieDocumento = TipoEspecieDocumento.DM,
-                Sacado = new Sacado()
-            };
+            //var boleto = new Boleto(_banco)
+            //{
+            //    DataVencimento = new DateTime(2022,08,24),
+            //    ValorTitulo = 457.30m,
+            //    NossoNumero = "0000509",
+            //    NumeroDocumento = "16",
+            //    EspecieDocumento = TipoEspecieDocumento.DM,
+            //    Sacado = new Sacado()
+            //};
 
-            //Ação
-            boleto.ValidarDados();
+            ////Ação
+            //boleto.ValidarDados();
 
             ////Assertivas
             //Assert.That(boleto.CodigoBarra.DigitoVerificador, Is.EqualTo(digitoVerificador), $"Dígito Verificador diferente de {digitoVerificador}");
