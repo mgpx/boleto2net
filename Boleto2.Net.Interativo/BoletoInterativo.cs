@@ -391,8 +391,11 @@ namespace Boleto2.Net.Interativo
                 if (tipoMora == 1)
                 {
                     boleto.DataJuros = boleto.DataVencimento.AddDays(1);
-                    boleto.PercentualJurosDia = (percentualMora / 30);
+                    
                     boleto.PercentualJurosDia = percentualMora;
+                    if (enuBmanco == Bancos.Itau)
+                        boleto.PercentualJurosDia = (percentualMora / 30);
+
                     boleto.ValorJurosDia = boleto.ValorTitulo * (boleto.PercentualJurosDia / 100);
 
                     //string instrucao = $"Cobrar juros de {boleto.PercentualJurosDia.ToString("0.00")} % por dia de atraso";
