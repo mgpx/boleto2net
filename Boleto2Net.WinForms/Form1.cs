@@ -274,5 +274,13 @@ namespace Boleto2.Net.WinForms
             //Exported.GerarInfoBoleto("001", "2020-10-21", "4535", out ret);
             Exported.GerarPDFOperacao("00100002676", true, @"C:\Interativo\BltExp\", false, ref ret);
         }
+
+        private void btnTesteGerar_Click(object sender, EventArgs e)
+        {
+            String ret = String.Empty;
+            Exported.GerarInfoBoleto("001", "2024-01-01", "1000", out ret);
+
+            MessageBox.Show(ret);
+        }
     }
 }

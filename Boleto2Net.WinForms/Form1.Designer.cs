@@ -37,6 +37,7 @@
             this.button2 = new System.Windows.Forms.Button();
             this.btnTeste = new System.Windows.Forms.Button();
             this.cbEnviarEmail = new System.Windows.Forms.CheckBox();
+            this.btnTesteGerar = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnSicredi
@@ -126,11 +127,22 @@
             this.cbEnviarEmail.Text = "Enviar Email";
             this.cbEnviarEmail.UseVisualStyleBackColor = true;
             // 
+            // btnTesteGerar
+            // 
+            this.btnTesteGerar.Location = new System.Drawing.Point(99, 100);
+            this.btnTesteGerar.Name = "btnTesteGerar";
+            this.btnTesteGerar.Size = new System.Drawing.Size(146, 33);
+            this.btnTesteGerar.TabIndex = 8;
+            this.btnTesteGerar.Text = "Teste Gerar";
+            this.btnTesteGerar.UseVisualStyleBackColor = true;
+            this.btnTesteGerar.Click += new System.EventHandler(this.btnTesteGerar_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(395, 145);
+            this.Controls.Add(this.btnTesteGerar);
             this.Controls.Add(this.cbEnviarEmail);
             this.Controls.Add(this.btnTeste);
             this.Controls.Add(this.button2);
@@ -158,6 +170,7 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button btnTeste;
         private System.Windows.Forms.CheckBox cbEnviarEmail;
+        private System.Windows.Forms.Button btnTesteGerar;
     }
 }
 
