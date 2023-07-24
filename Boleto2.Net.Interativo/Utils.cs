@@ -13,6 +13,7 @@ namespace Boleto2.Net.Interativo
         {
             public String Ip { get; set; } = "127.0.0.1";
             public String DatabaseName { get; set; } = "interativo";
+            public String PortaDB { get; set; } = "5432";
 
         }
 
@@ -33,12 +34,15 @@ namespace Boleto2.Net.Interativo
                     {
                         Object ipServer = key.GetValue("IpServer");
                         Object databaseName = key.GetValue("DatabaseName");
-
+                        Object portaDB = key.GetValue("PortaDB");
                         if (ipServer != null)
                             conn.Ip = ipServer.ToString();
 
                         if (databaseName != null)
                             conn.DatabaseName = databaseName.ToString();
+
+                        if (portaDB != null)
+                            conn.PortaDB = portaDB.ToString();
                     }
                 }
 

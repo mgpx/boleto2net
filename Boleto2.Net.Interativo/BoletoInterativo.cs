@@ -1032,7 +1032,7 @@ namespace Boleto2.Net.Interativo
         {
             Utils.ConnectionServer regedit = Utils.GetIpServer();
             //String strConn = $"Server = {regedit.Ip}; Port = 5432; Database = {regedit.DatabaseName}; User Id = 'postgres';Password = 123456;Encoding=LATIN1";
-            String strConn = $"Server = {regedit.Ip}; Port = 5432; Database = {regedit.DatabaseName}; User Id = 'postgres';Password = 123456;";
+            String strConn = $"Server = {regedit.Ip}; Port = {regedit.PortaDB}; Database = {regedit.DatabaseName}; User Id = 'postgres';Password = 123456;";
             return new NpgsqlConnection(strConn);
         }
 
