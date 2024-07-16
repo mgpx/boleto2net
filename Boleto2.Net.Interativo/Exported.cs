@@ -54,6 +54,7 @@ namespace Boleto2.Net.Interativo
         [DllExport("GerarPDFTransacao", CallingConvention.StdCall)]
         public static void GerarPDFTransacao(String transacao, Boolean mostrarTela, String diretorio, Boolean enviarEmail, [MarshalAs(UnmanagedType.BStr)] ref String retorno)
         {
+            BoletoInterativo.RegistrarLog($"GerarPDFTransacao: {transacao}");
             if (String.IsNullOrEmpty(transacao))
             {
                 return;
@@ -70,6 +71,7 @@ namespace Boleto2.Net.Interativo
                 InternalGerarPDFOperacao(operacoes, mostrarTela, diretorio, enviarEmail, ref retorno);
             }catch(Exception e)
             {
+                BoletoInterativo.RegistrarLog($"Erro ao gerar PDF: {e.Message.ToString()}");
                 MessageBox.Show(e.ToString(), "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             
@@ -80,6 +82,8 @@ namespace Boleto2.Net.Interativo
         {
             try
             {
+                BoletoInterativo.RegistrarLog($"GerarPDFOperacao: {operacoes}");
+
                 Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
                 //Application.EnableVisualStyles();
                 List<String> listOperacoes = operacoes.Split(new char[] { ';' }).ToList();
@@ -88,6 +92,7 @@ namespace Boleto2.Net.Interativo
             }
             catch (Exception e)
             {
+                BoletoInterativo.RegistrarLog($"Erro ao gerar PDF: {e.Message.ToString()}");
                 MessageBox.Show(e.ToString(), "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

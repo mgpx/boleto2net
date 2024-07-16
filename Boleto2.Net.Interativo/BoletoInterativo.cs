@@ -23,6 +23,8 @@ namespace Boleto2.Net.Interativo
 
         private String[] mBancosSuportados = new string[] { "753", "748", "341", "237" };
 
+        private static Boolean HabilitaLogs = true;
+
         public BoletoInterativo(List<String> operacao)
         {
             this.mOperacao = operacao;
@@ -57,10 +59,9 @@ namespace Boleto2.Net.Interativo
             return operacoes;
         }
 
-
-
         public void Gerar()
         {
+            
             pendfins = LerDadosPendfin(this.mOperacao);
 
             List<String> pendentes = new List<string>(this.mOperacao);
@@ -69,6 +70,9 @@ namespace Boleto2.Net.Interativo
             //    throw new Exception("Não foi possível localizar algumas das operações: (" + String.Join("|", pendfins) + ")");
             foreach (var pendfin in pendfins)
             {
+
+                RegistrarLog($"Processando OP: {pendfin.pfin_operacao}");
+
                 Empresa empresa = ObterEmpresa(pendfin.pfin_empr_codigo);
                 if (empresa == null)
                     throw new Exception("Empresa não localizada");
@@ -271,11 +275,12 @@ namespace Boleto2.Net.Interativo
         {
             Boletos boletos = new Boletos();
 
-
+            RegistrarLog($"Gerando PDF OP: {pendfin.pfin_operacao}");
             //Cabeçalho
             //if (pendfin.itbc_banco.Equals("748") == false && pendfin.itbc_banco.Equals("341") == false)
             if (mBancosSuportados.Contains(pendfin.itbc_banco) == false)
-                throw new Exception("Bancos suportados por esta DLL Sicredi / Itau / NCBBank");
+                return;
+            //throw new Exception("Bancos suportados por esta DLL Sicredi / Itau / NCBBank / Bradesco");
 
             var enuBmanco = (Bancos)Convert.ToUInt16(pendfin.itbc_banco);
 
@@ -492,6 +497,8 @@ namespace Boleto2.Net.Interativo
             String pathPDF = Path.Combine(mDirBase, "blt" + pendfin.pfin_operacao + ".pdf");
 
             mListaPathPDFS.Add(pathPDF);
+
+            RegistrarLog($"PDF gerado em: {pathPDF}");
 
             File.WriteAllBytes(pathPDF, pdf);
         }
@@ -869,7 +876,6 @@ namespace Boleto2.Net.Interativo
             return cliente;
         }
         
-        
         public static IntegracaoBancariaDet ObterConfigDet(String codigo)
         {
             IntegracaoBancariaDet retorno = new IntegracaoBancariaDet();
@@ -961,8 +967,6 @@ namespace Boleto2.Net.Interativo
             return seq;
         }
 
-
-
         public List<Pendfin> LerDadosPendfin(List<String> operacoes)
         {
             List<Pendfin> retorno = new List<Pendfin>();
@@ -1036,7 +1040,13 @@ namespace Boleto2.Net.Interativo
             return new NpgsqlConnection(strConn);
         }
 
-
+        public static void RegistrarLog(String mensagem)
+        {
+            if (HabilitaLogs)
+            {
+                File.AppendAllText("Boleto2.Net.Logs.txt", $"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] - {mensagem}{Environment.NewLine}");
+            }
+        }
 
     }
 }

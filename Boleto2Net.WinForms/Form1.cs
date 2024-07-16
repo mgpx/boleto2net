@@ -187,6 +187,7 @@ namespace Boleto2.Net.WinForms
             //Exported.GerarPDFTransacao(this.textBox1.Text, false, @"C:\Temp\", true, ref retorno);
             Exported.GerarPDFTransacao(this.textBox1.Text, true, @"C:\Temp", this.cbEnviarEmail.Checked, ref retorno);
             
+            if (!String.IsNullOrEmpty(retorno))
             MessageBox.Show("Retorno: " + retorno);
 
             //var contaBancaria = new ContaBancaria
