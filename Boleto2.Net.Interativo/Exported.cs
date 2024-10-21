@@ -69,7 +69,8 @@ namespace Boleto2.Net.Interativo
                     operacoes.Add(transacao);
 
                 InternalGerarPDFOperacao(operacoes, mostrarTela, diretorio, enviarEmail, ref retorno);
-            }catch(Exception e)
+            }
+            catch(Exception e)
             {
                 BoletoInterativo.RegistrarLog($"Erro ao gerar PDF: {e.Message.ToString()}");
                 MessageBox.Show(e.ToString(), "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
