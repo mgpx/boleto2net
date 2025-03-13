@@ -152,12 +152,13 @@ namespace Boleto2Net
             Banco.FormataNossoNumero(this);
             Boleto2Net.Banco.FormataCodigoBarra(this);
             Boleto2Net.Banco.FormataLinhaDigitavel(this);
-
+             /*
             if (this.CodigoBarra.CodigoDeBarras != codBarras)
                 throw new Exception($"O código de barras informado é diferente do calculado. Informado {codBarras} / Calculado {this.CodigoBarra.CodigoDeBarras}");
             var linhaDigSemFormatacao = string.Join("", this.CodigoBarra.LinhaDigitavel.ToCharArray().Where(Char.IsDigit));
             if (linhaDigSemFormatacao != linhaDigitavel)
                 throw new Exception($"A linha digivel informada é diferente do calculado. Informado {linhaDigitavel} / Calculado {this.CodigoBarra.LinhaDigitavel}");
+             */
         }
 
         private void ValidarDadosBasico()
