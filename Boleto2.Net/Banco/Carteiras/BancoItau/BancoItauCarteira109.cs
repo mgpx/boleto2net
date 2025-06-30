@@ -19,8 +19,6 @@ namespace Boleto2Net
             if (IsNullOrWhiteSpace(boleto.NossoNumero))
                 throw new Exception("Nosso Número não informado.");
 
-
-            
             // Nosso número não pode ter mais de 8 dígitos
             if (boleto.NossoNumero.Length <= 8)
             {

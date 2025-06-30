@@ -21,7 +21,7 @@ namespace Boleto2.Net.Interativo
 
         private List<Pendfin> pendfins;
 
-        private String[] mBancosSuportados = new string[] { "753", "748", "341", "237" };
+        private String[] mBancosSuportados = new string[] { "753", "748", "341", "237", "041" };
 
         private static Boolean HabilitaLogs = true;
 
@@ -279,7 +279,7 @@ namespace Boleto2.Net.Interativo
             //Cabeçalho
             //if (pendfin.itbc_banco.Equals("748") == false && pendfin.itbc_banco.Equals("341") == false)
             if (mBancosSuportados.Contains(pendfin.itbc_banco) == false)
-                return;
+                 return;
             //throw new Exception("Bancos suportados por esta DLL Sicredi / Itau / NCBBank / Bradesco");
 
             var enuBmanco = (Bancos)Convert.ToUInt16(pendfin.itbc_banco);
@@ -340,7 +340,7 @@ namespace Boleto2.Net.Interativo
             boleto.DataVencimento = pendfin.pfin_datavcto.Value;
             //ano/bytegeracao/sequencial
             int seq = 0;
-            boleto.NossoNumero = pendfin.pfin_nossonumero;
+            boleto.NossoNumero = pendfin.pfin_nossonumero.Contains(".") ? pendfin.pfin_nossonumero.Substring(0, pendfin.pfin_nossonumero.IndexOf(".")) : pendfin.pfin_nossonumero;
 
             if (enuBmanco == Bancos.Bradesco)
             {
@@ -389,6 +389,11 @@ namespace Boleto2.Net.Interativo
                 tipoMora = 1;
                 percentualMora = Convert.ToDecimal(det["008"].Replace('.', ',') ?? "0");
             }
+            else if (enuBmanco == Bancos.Banrisul)
+            {
+                tipoMora = Convert.ToInt32(det["012"]);
+                
+            }
 
 
             if (percentualMora > 0)
@@ -396,7 +401,7 @@ namespace Boleto2.Net.Interativo
                 if (tipoMora == 1)
                 {
                     boleto.DataJuros = boleto.DataVencimento.AddDays(1);
-                    
+
                     boleto.PercentualJurosDia = percentualMora;
                     if (enuBmanco == Bancos.Itau)
                         boleto.PercentualJurosDia = (percentualMora / 30);
@@ -420,7 +425,7 @@ namespace Boleto2.Net.Interativo
                     else
                         boleto.MensagemInstrucoesCaixa += "<br/>" + instrucao;
                 }
-                
+
             }
 
             //if (string.IsNullOrEmpty(boleto.MensagemInstrucoesCaixa))
@@ -455,8 +460,12 @@ namespace Boleto2.Net.Interativo
                 boleto.CodigoProtesto = TipoCodigoProtesto.ProtestarDiasUteis;
                 boleto.DiasProtesto = Convert.ToInt32(det["013"]);
             }
-            
-            
+            else if (det["016"] == "1" && enuBmanco == Bancos.Banrisul)
+            {
+                boleto.CodigoProtesto = TipoCodigoProtesto.ProtestarDiasUteis;
+                boleto.DiasProtesto = Convert.ToInt32(det["017"]);
+            }
+
             //nbcbank semore vai ter protesto
             if (enuBmanco == Bancos.Nbcbank)
             {
@@ -520,6 +529,9 @@ namespace Boleto2.Net.Interativo
                     break;
                 case Bancos.Bradesco:
                     ibanco = GerarBoletoInfoCedenteBradesco(integracaoBancaria, det);
+                    break;
+                case Bancos.Banrisul:
+                    ibanco = GerarBoletoInfoCedenteBanrisul(integracaoBancaria, det);
                     break;
                 default:
                     throw new NotImplementedException("Função não suportada");
@@ -706,10 +718,59 @@ namespace Boleto2.Net.Interativo
             return banco;
         }
 
+
+        public static IBanco GerarBoletoInfoCedenteBanrisul(IntegracaoBancaria integracaoBancaria, IntegracaoBancariaDet det)
+        {
+            var banco = Banco.Instancia(Bancos.Banrisul);
+
+            banco.Cedente = new Cedente
+            {
+                CPFCNPJ = det["001"],
+                Nome = det["027"],
+                Observacoes = string.Empty,
+                ContaBancaria = new ContaBancaria
+                {
+                    //Posto = det["002"],
+                    Agencia = det["002"].Substring(0, 4),
+                    DigitoAgencia = "",
+                    OperacaoConta = string.Empty,
+                    Conta = det["002"].Substring(4, 8), //7 ou 8
+                    DigitoConta = det["002"].Substring(12, 1),
+                    //DigitoConta = this.Conta.NumeroDigito,
+                    //CarteiraPadrao = "09", // this.Conta.CarteiraBoleto,
+                    CarteiraPadrao = det["007"] /* Implementadas 02 e 09 */,
+                    VariacaoCarteiraPadrao = String.Empty, //this.Conta.VariacaoCarteira,
+                    TipoCarteiraPadrao = TipoCarteira.CarteiraCobrancaSimples,
+                    //TipoFormaCadastramento = pendfin.itbc_tpproc == "001" ? TipoFormaCadastramento.SemRegistro : TipoFormaCadastramento.ComRegistro,
+                    TipoImpressaoBoleto = TipoImpressaoBoleto.Empresa,
+                    TipoDocumento = TipoDocumento.Tradicional,
+                    LocalPagamento = $"{det["101"]}<br/>{det["102"]}<br/>{det["103"]}<br/>{det["104"]}"  //"ATÉ O VENCIMENTO, PAGUE EM QUALQUER BANCO OU CORRESPONDENTE NÃO BANCÁRIO. <br/> APÓS O VENCIMENTO, ACESSE ITAU.COM.BR / BOLETOS E PAGUE EM QUALQUER BANCO  <br/> OU CORRESPONDENTE NÃO BANCÁRIO."
+                },
+                Codigo = det["002"],
+                CodigoDV = "",
+                CodigoTransmissao = string.Empty,
+                CodigoFormatado = $"{det["002"].Substring(0, 4)}/{det["002"].Substring(4,7)}.{det["002"].Substring(11,2)}"    
+                //det["001"].Substring(0, 4) + "/" + det["001"].Substring(4, 5) + det["001"].Substring(9, 1)
+                //Endereco = new Boleto2Net.Endereco
+                //{
+                //    LogradouroEndereco = empresa.empr_endereco,
+                //    LogradouroNumero = empresa.empr_numero,
+                //    LogradouroComplemento = empresa.empr_complemento,
+                //    Bairro = empresa.empr_bairro,
+                //    Cidade = empresa.empr_cidade,
+                //    UF = empresa.empr_uf,
+                //    CEP = empresa.empr_cep,
+                //}
+            };
+
+            return banco;
+        }
         //public static IBanco GerarBoletoInfoCedenteCaixa(IntegracaoBancaria integracaoBancaria, IntegracaoBancariaDet det)
         //{
 
         //}
+
+
 
         public void MostarBoleto()
         {

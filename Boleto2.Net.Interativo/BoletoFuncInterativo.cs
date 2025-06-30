@@ -26,6 +26,10 @@ namespace Boleto2.Net.Interativo
 
             //System.Windows.Forms.MessageBox.Show("Obtendo sequencia");
             Int64 seqNossoNumero = BoletoInterativo.ObterValorSequencia(nomeSeq);
+            //Int64 seqNossoNumero = 19;
+            
+            
+            
             //boletos.Banco = Banco.Instancia((Bancos)Convert.ToUInt16(integracaoBancaria.itbc_banco));
             //var boleto = new Boleto(boletos.Banco);
 

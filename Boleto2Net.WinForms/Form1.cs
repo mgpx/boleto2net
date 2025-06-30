@@ -279,9 +279,9 @@ namespace Boleto2.Net.WinForms
         private void btnTesteGerar_Click(object sender, EventArgs e)
         {
             String ret = String.Empty;
-            Exported.GerarInfoBoleto("001", "2024-01-01", "1000", out ret);
+            Exported.GerarInfoBoleto("005", "2025-07-26", "88000", out ret);
 
-            MessageBox.Show(ret);
+            MessageBox.Show(String.Join("\n", ret.Split(';')));
         }
     }
 }

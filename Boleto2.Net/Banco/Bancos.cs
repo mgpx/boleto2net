@@ -12,4 +12,5 @@ namespace Boleto2Net
         Sicredi = 748,
         Nbcbank = 753
     }
+
 }
