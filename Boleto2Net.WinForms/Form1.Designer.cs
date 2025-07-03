@@ -129,7 +129,7 @@
             // 
             // btnTesteGerar
             // 
-            this.btnTesteGerar.Location = new System.Drawing.Point(99, 100);
+            this.btnTesteGerar.Location = new System.Drawing.Point(99, 138);
             this.btnTesteGerar.Name = "btnTesteGerar";
             this.btnTesteGerar.Size = new System.Drawing.Size(146, 33);
             this.btnTesteGerar.TabIndex = 8;
@@ -141,7 +141,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(395, 145);
+            this.ClientSize = new System.Drawing.Size(395, 197);
             this.Controls.Add(this.btnTesteGerar);
             this.Controls.Add(this.cbEnviarEmail);
             this.Controls.Add(this.btnTeste);
@@ -152,6 +152,8 @@
             this.Controls.Add(this.button1);
             this.Controls.Add(this.btnNbcBank);
             this.Controls.Add(this.btnSicredi);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "Form1";
             this.Text = "Teste Boleto";
             this.ResumeLayout(false);
