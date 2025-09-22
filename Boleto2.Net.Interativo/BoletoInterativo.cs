@@ -99,6 +99,7 @@ namespace Boleto2.Net.Interativo
 
             if (pendentes.Count > 0)
             {
+                RegistrarLog($"** Erro ao gerar boletos das operações: {String.Join("|", pendentes)}");
                 throw new Exception("Não foi possível gerar boletos das operações: (" + String.Join("|", pendentes) + ")");
             }
         }

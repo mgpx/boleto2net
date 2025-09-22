@@ -46,7 +46,8 @@ namespace Boleto2.Net.Interativo
             catch(Exception e)
             {
                 retorno = e.ToString();
-                System.Windows.Forms.MessageBox.Show(retorno);
+                BoletoInterativo.RegistrarLog($"Erro ao gerar PDF: {e.Message.ToString()}");
+                //System.Windows.Forms.MessageBox.Show(retorno);
             }
         }
 
@@ -73,7 +74,7 @@ namespace Boleto2.Net.Interativo
             catch(Exception e)
             {
                 BoletoInterativo.RegistrarLog($"Erro ao gerar PDF: {e.Message.ToString()}");
-                MessageBox.Show(e.ToString(), "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //MessageBox.Show(e.ToString(), "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             
         }
@@ -94,7 +95,7 @@ namespace Boleto2.Net.Interativo
             catch (Exception e)
             {
                 BoletoInterativo.RegistrarLog($"Erro ao gerar PDF: {e.Message.ToString()}");
-                MessageBox.Show(e.ToString(), "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //MessageBox.Show(e.ToString(), "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -124,7 +125,9 @@ namespace Boleto2.Net.Interativo
             }
             catch (Exception e)
             {
+                BoletoInterativo.RegistrarLog($"Erro ao gerar PDF da operação: {e.Message.ToString()}");
                 retorno = e.ToString();
+
             }
         }
 
