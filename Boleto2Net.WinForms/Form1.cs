@@ -182,10 +182,13 @@ namespace Boleto2.Net.WinForms
 
         private void button2_Click(object sender, EventArgs e)
         {
+            
             String retorno = "";
+
             //Exported.GerarPDFOperacao(this.textBox1.Text, true, @"C:\Temp\", false, ref retorno);
             //Exported.GerarInfoBoleto("003", "2021-01-16", "1000", out retorno);
             //Exported.GerarPDFTransacao(this.textBox1.Text, false, @"C:\Temp\", true, ref retorno);
+
             Exported.GerarPDFTransacao(this.textBox1.Text, true, @"C:\Temp", this.cbEnviarEmail.Checked, ref retorno);
             
             if (!String.IsNullOrEmpty(retorno))
@@ -274,13 +277,17 @@ namespace Boleto2.Net.WinForms
         {
             String ret = "";
             //Exported.GerarInfoBoleto("001", "2020-10-21", "4535", out ret);
-            Exported.GerarPDFOperacao("00100002676", true, @"C:\Interativo\BltExp\", false, ref ret);
+            Exported.GerarPDFOperacao("00900200141", true, @"C:\Interativo\BltExp\", false, ref ret);
         }
 
         private void btnTesteGerar_Click(object sender, EventArgs e)
         {
             String ret = String.Empty;
-            Exported.GerarInfoBoleto("005", "2025-07-26", "88000", out ret);
+            //Exported.GerarInfoBoleto("005", "2025-07-26", "88000", out ret);
+
+            //Exported.GerarInfoBoleto("008", "2025-10-04", "10000", out ret);
+
+            Exported.GerarInfoBoleto("009", "2025-10-04", "10000", out ret);
 
             MessageBox.Show(String.Join("\n", ret.Split(';')));
         }

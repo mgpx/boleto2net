@@ -34,7 +34,7 @@ namespace Boleto2Net
             {
                 // ou deve ser informado com até 10 posições (será formatado para 17 dígitos pelo Boleto.Net).
                 if (boleto.NossoNumero.Length > 10)
-                    throw new Exception($"Nosso Número ({boleto.NossoNumero}) deve iniciar com \"{boleto.Banco.Cedente.Codigo}\" e conter 17 dígitos.");
+                    throw new Exception($"Nosso Número ({boleto.NossoNumero }) deve iniciar com \"{boleto.Banco.Cedente.Codigo}\" e conter 17 dígitos.");
                 boleto.NossoNumero = $"{boleto.Banco.Cedente.Codigo}{boleto.NossoNumero.PadLeft(10, '0')}";
             }
             // Para convênios com 7 dígitos, não existe dígito de verificação do nosso número

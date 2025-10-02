@@ -21,7 +21,7 @@ namespace Boleto2.Net.Interativo
 
         private List<Pendfin> pendfins;
 
-        private String[] mBancosSuportados = new string[] { "753", "748", "341", "237", "041" };
+        private String[] mBancosSuportados = new string[] { "753", "748", "341", "237", "041", "001" };
 
         private static Boolean HabilitaLogs = true;
 
@@ -299,7 +299,7 @@ namespace Boleto2.Net.Interativo
                 CEP = empresa.empr_cep,
             };
 
-            if (enuBmanco == Bancos.Nbcbank)
+             if (enuBmanco == Bancos.Nbcbank)
             {
                 boletos.Banco.Cedente.Endereco.LogradouroEndereco = "<BR/>R URUGUAI 155 - CONJ 1308 - CENTRO, PORTO ALEGRE - RS CEP 90010-140";
                 boletos.Banco.Cedente.Endereco.LogradouroNumero = String.Empty;
@@ -352,8 +352,8 @@ namespace Boleto2.Net.Interativo
             boleto.ValorTitulo = pendfin.pfin_valor;
             boleto.Aceite = "N";
             boleto.EspecieDocumento = TipoEspecieDocumento.DM;
-            boleto.Carteira = boletos.Banco.Cedente.ContaBancaria.CarteiraPadrao ;
-            boleto.VariacaoCarteira = String.Empty;
+            boleto.Carteira = boletos.Banco.Cedente.ContaBancaria.CarteiraPadrao;
+            boleto.VariacaoCarteira = boletos.Banco.Cedente.ContaBancaria.VariacaoCarteiraPadrao;
 
             boleto.DataDesconto = DateTime.Today;
             boleto.ValorDesconto = pendfin.pfin_desconto;
@@ -433,9 +433,9 @@ namespace Boleto2.Net.Interativo
             //    boleto.MensagemInstrucoesCaixa = det["101"];
             //else
             if (string.IsNullOrEmpty(boleto.MensagemInstrucoesCaixa))
-                boleto.MensagemInstrucoesCaixa += det["101"];
+                boleto.MensagemInstrucoesCaixa += det["101"] + "<br/>" + det["102"] + "<br/>" + det["103"];
             else
-                boleto.MensagemInstrucoesCaixa +=  "<br/>" +det["101"];
+                boleto.MensagemInstrucoesCaixa += "<br/>" + det["101"];
 
 
             /*
@@ -534,14 +534,16 @@ namespace Boleto2.Net.Interativo
                 case Bancos.Banrisul:
                     ibanco = GerarBoletoInfoCedenteBanrisul(integracaoBancaria, det);
                     break;
+                case Bancos.BancoDoBrasil:
+                    ibanco = GerarBoletoInfoCedenteBancoDoBrasil(integracaoBancaria, det);
+                    break;
                 default:
                     throw new NotImplementedException("Função não suportada");
             }
 
             return ibanco;
         }
-        
-
+     
         public static IBanco GerarBoletoInfoCedenteSicredi(IntegracaoBancaria integracaoBancaria, IntegracaoBancariaDet det)
         {
             var banco = Banco.Instancia(Bancos.Sicredi);
@@ -719,7 +721,6 @@ namespace Boleto2.Net.Interativo
             return banco;
         }
 
-
         public static IBanco GerarBoletoInfoCedenteBanrisul(IntegracaoBancaria integracaoBancaria, IntegracaoBancariaDet det)
         {
             var banco = Banco.Instancia(Bancos.Banrisul);
@@ -770,6 +771,54 @@ namespace Boleto2.Net.Interativo
         //{
 
         //}
+
+        public static IBanco GerarBoletoInfoCedenteBancoDoBrasil(IntegracaoBancaria integracaoBancaria, IntegracaoBancariaDet det)
+        {
+            var banco = Banco.Instancia(Bancos.BancoDoBrasil);
+
+            banco.Cedente = new Cedente
+            {
+                CPFCNPJ = det["001"],
+                Nome = det["002"],
+                Observacoes = string.Empty,
+                ContaBancaria = new ContaBancaria
+                {
+                    //Posto = det["002"],
+                    Agencia = det["008"],
+                    DigitoAgencia = det["009"],
+                    OperacaoConta = string.Empty,
+                    Conta = det["010"], 
+                    DigitoConta = det["011"],
+                    //DigitoConta = this.Conta.NumeroDigito,
+                    //CarteiraPadrao = "09", // this.Conta.CarteiraBoleto,
+                    CarteiraPadrao = det["006"] /* Implementadas 02 e 09 */,
+                    VariacaoCarteiraPadrao = det["007"].PadLeft(3,'0'), //this.Conta.VariacaoCarteira,
+                    TipoCarteiraPadrao = TipoCarteira.CarteiraCobrancaSimples,
+                    //TipoFormaCadastramento = pendfin.itbc_tpproc == "001" ? TipoFormaCadastramento.SemRegistro : TipoFormaCadastramento.ComRegistro,
+                    TipoImpressaoBoleto = TipoImpressaoBoleto.Empresa,
+                    TipoDocumento = TipoDocumento.Tradicional,
+                    LocalPagamento = "PAGÁVEL EM QUALQUER BANCO"
+                    //LocalPagamento = $"{det["101"]}<br/>{det["102"]}<br/>{det["103"]}<br/>{det["104"]}"  //"ATÉ O VENCIMENTO, PAGUE EM QUALQUER BANCO OU CORRESPONDENTE NÃO BANCÁRIO. <br/> APÓS O VENCIMENTO, ACESSE ITAU.COM.BR / BOLETOS E PAGUE EM QUALQUER BANCO  <br/> OU CORRESPONDENTE NÃO BANCÁRIO."
+                },
+                Codigo = det["003"],
+                CodigoDV = "",
+                CodigoTransmissao = string.Empty,
+                CodigoFormatado = $"{det["008"]}-{det["009"]}/{det["010"]}-{det["011"]}",
+                //det["001"].Substring(0, 4) + "/" + det["001"].Substring(4, 5) + det["001"].Substring(9, 1)
+                //Endereco = new Boleto2Net.Endereco
+                //{
+                //    LogradouroEndereco = empresa.empr_endereco,
+                //    LogradouroNumero = empresa.empr_numero,
+                //    LogradouroComplemento = empresa.empr_complemento,
+                //    Bairro = empresa.empr_bairro,
+                //    Cidade = empresa.empr_cidade,
+                //    UF = empresa.empr_uf,
+                //    CEP = empresa.empr_cep,
+                //}
+            };
+
+            return banco;
+        }
 
 
 
