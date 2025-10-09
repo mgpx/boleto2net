@@ -492,7 +492,6 @@ namespace Boleto2.Net.Interativo
                 boleto.Avalista.Endereco.LogradouroNumero = empresa.empr_numero;
                 boleto.Avalista.Endereco.UF = empresa.empr_uf;
                 boleto.Avalista.Endereco.LogradouroEndereco = empresa.empr_endereco;
-   
             }
             
             boleto.ValidarDadosChaves(pendfin.pfin_codbarras, pendfin.pfin_linhadig);
