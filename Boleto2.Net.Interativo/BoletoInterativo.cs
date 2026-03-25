@@ -433,7 +433,7 @@ namespace Boleto2.Net.Interativo
             //    boleto.MensagemInstrucoesCaixa = det["101"];
             //else
             if (string.IsNullOrEmpty(boleto.MensagemInstrucoesCaixa))
-                boleto.MensagemInstrucoesCaixa += det["101"] + "<br/>" + det["102"] + "<br/>" + det["103"];
+                boleto.MensagemInstrucoesCaixa += det["101"] + "<br/>" + det["102"] + "<br/>" + det["103"] + "<br/>" + det["104"];
             else
                 boleto.MensagemInstrucoesCaixa += "<br/>" + det["101"];
 
@@ -492,6 +492,12 @@ namespace Boleto2.Net.Interativo
                 boleto.Avalista.Endereco.LogradouroNumero = empresa.empr_numero;
                 boleto.Avalista.Endereco.UF = empresa.empr_uf;
                 boleto.Avalista.Endereco.LogradouroEndereco = empresa.empr_endereco;
+            }
+
+            if (enuBmanco == Bancos.Bradesco)
+            {
+                //apaga tudo o que foi gerado e deixa fixo que nem o interativo
+                boleto.MensagemInstrucoesCaixa = det["101"] + "<br/>" + det["102"] + "<br/>" + det["103"] + "<br/>" + det["104"];
             }
             
             boleto.ValidarDadosChaves(pendfin.pfin_codbarras, pendfin.pfin_linhadig);
@@ -698,7 +704,8 @@ namespace Boleto2.Net.Interativo
                     //TipoFormaCadastramento = pendfin.itbc_tpproc == "001" ? TipoFormaCadastramento.SemRegistro : TipoFormaCadastramento.ComRegistro,
                     TipoImpressaoBoleto = TipoImpressaoBoleto.Empresa,
                     TipoDocumento = TipoDocumento.Tradicional,
-                    LocalPagamento = $"{det["101"]}<br/>{det["102"]}<br/>{det["103"]}<br/>{det["104"]}"  //"ATÉ O VENCIMENTO, PAGUE EM QUALQUER BANCO OU CORRESPONDENTE NÃO BANCÁRIO. <br/> APÓS O VENCIMENTO, ACESSE ITAU.COM.BR / BOLETOS E PAGUE EM QUALQUER BANCO  <br/> OU CORRESPONDENTE NÃO BANCÁRIO."
+                    //LocalPagamento = $"{det["101"]}<br/>{det["102"]}<br/>{det["103"]}<br/>{det["104"]}"  //"ATÉ O VENCIMENTO, PAGUE EM QUALQUER BANCO OU CORRESPONDENTE NÃO BANCÁRIO. <br/> APÓS O VENCIMENTO, ACESSE ITAU.COM.BR / BOLETOS E PAGUE EM QUALQUER BANCO  <br/> OU CORRESPONDENTE NÃO BANCÁRIO."
+                    LocalPagamento = "ATÉ O VENCIMENTO, PAGUE EM QUALQUER BANCO OU CORRESPONDENTE NÃO BANCÁRIO. <br/> APÓS O VENCIMENTO, ACESSE ITAU.COM.BR / BOLETOS E PAGUE EM QUALQUER BANCO  <br/> OU CORRESPONDENTE NÃO BANCÁRIO."
                 },
                 Codigo = det["001"].Substring(0, 6).PadLeft(7, '0'),
                 CodigoDV = det["001"].Substring(6, 1),
