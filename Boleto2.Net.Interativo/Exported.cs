@@ -140,7 +140,9 @@ namespace Boleto2.Net.Interativo
             //sb.Append("Valor:" + valor + "\n");
 
             //System.Windows.Forms.MessageBox.Show(sb.ToString());
+            BoletoInterativo.RegistrarLog($"GerarInfoBoleto Init: {codIntegracaoBancaria}|{vcto}|{valor}");
             Decimal valorDecimal = Convert.ToDecimal(Convert.ToInt32(valor)) / 100.0m;
+            
             //System.Windows.Forms.MessageBox.Show("Converteu Valor");
             retorno = String.Empty;
             try
@@ -151,9 +153,11 @@ namespace Boleto2.Net.Interativo
                 //System.Windows.Forms.MessageBox.Show(aux);
                 //System.Windows.Forms.MessageBox.Show("Passando retorno a referencia");
                 retorno = aux;
+                BoletoInterativo.RegistrarLog($"GerarInfoBoleto Ret: {aux}");
             }
             catch(Exception e)
             {
+                BoletoInterativo.RegistrarLog($"GerarInfoBoleto Erro: {e.Message.ToString()}");
                 MessageBox.Show(e.ToString());
             }
             
@@ -169,7 +173,7 @@ namespace Boleto2.Net.Interativo
         public static void Teste2(String texto)
         {
             System.Windows.Forms.MessageBox.Show("OK " + texto);
-        }
+        } 
 
 
 

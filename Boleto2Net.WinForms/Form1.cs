@@ -287,7 +287,7 @@ namespace Boleto2.Net.WinForms
 
             //Exported.GerarInfoBoleto("008", "2025-10-04", "10000", out ret);
 
-            Exported.GerarInfoBoleto("009", "2025-10-04", "10000", out ret);
+            Exported.GerarInfoBoleto("001", "2025-10-04", "10000", out ret);
 
             MessageBox.Show(String.Join("\n", ret.Split(';')));
         }
