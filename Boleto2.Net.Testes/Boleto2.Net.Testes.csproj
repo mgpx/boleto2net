@@ -70,6 +70,8 @@
     <Compile Include="BancoItauCarteira112Tests.cs" />
     <Compile Include="BancoSantanderCarteira101Tests.cs" />
     <Compile Include="BancoSicoobCarteira1_01Tests.cs" />
+    <Compile Include="SicoobInterativoTests.cs" />
+    <Compile Include="ConferenciaBoletoTests.cs" />
     <Compile Include="BancoCaixaCarteiraSig14Tests.cs" />
     <Compile Include="BancoBradescoCarteira09.cs" />
     <Compile Include="FatorVencimento.cs" />
@@ -81,6 +83,10 @@
     <ProjectReference Include="..\Boleto2.Net\Boleto2.Net.csproj">
       <Project>{f173e80b-e36b-48ad-b483-a27f8ca86f3c}</Project>
       <Name>Boleto2.Net</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Boleto2.Net.Interativo\Boleto2.Net.Interativo.csproj">
+      <Project>{C2487626-9422-4DBB-A408-C3263111C54F}</Project>
+      <Name>Boleto2.Net.Interativo</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

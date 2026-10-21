@@ -134,6 +134,10 @@
     <Compile Include="Entidades\Empresa.cs" />
     <Compile Include="Entidades\IntegracaoBancaria.cs" />
     <Compile Include="Entidades\IntegracaoBancariaDet.cs" />
+    <Compile Include="SicoobIntegracao.cs" />
+    <Compile Include="NumeroBoletoConferencia.cs" />
+    <Compile Include="ResultadoConferenciaBoleto.cs" />
+    <Compile Include="ConferenciaBoletoService.cs" />
     <Compile Include="Entidades\Pendfin.cs" />
     <Compile Include="Exported.cs" />
     <Compile Include="Extensions.cs" />

@@ -1,4 +1,6 @@
 ﻿using Boleto2Net;
+using Boleto2Net.Extensions;
+using Boleto2.Net.Interativo.Entidades;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +18,12 @@ namespace Boleto2.Net.Interativo
             var integracaoBancaria = BoletoInterativo.ObterIntegracaoBancaria(codIntegracaoBancaria);
             //System.Windows.Forms.MessageBox.Show("Carregou dados Integracao bancarria");
             var det = BoletoInterativo.ObterConfigDet(codIntegracaoBancaria);
+            return ObterDados(integracaoBancaria, det, vcto, valor, BoletoInterativo.ObterValorSequencia);
+        }
+
+        internal static RetornoBoleto ObterDados(IntegracaoBancaria integracaoBancaria,
+            IntegracaoBancariaDet det, string vcto, decimal valor, Func<string, long> obterSequencia)
+        {
             //System.Windows.Forms.MessageBox.Show("Carregou dados Integracao bancarria det");
             var enumBanco = (Bancos)Convert.ToUInt16(integracaoBancaria.itbc_banco);
             //enumBanco = Bancos.Itau;
@@ -26,8 +34,20 @@ namespace Boleto2.Net.Interativo
 
             BoletoInterativo.RegistrarLog($"GerarInfoBoleto Seq: {nomeSeq}");
 
+            // No Sicoob, valide o cadastro e o vencimento antes de consumir a sequência.
+            if (enumBanco == Bancos.Sicoob)
+            {
+                boletos.Banco = BoletoInterativo.GerarBoletoInfoCedente(integracaoBancaria, det);
+                DateTime.ParseExact(vcto, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
+                    .FatorVencimento();
+                if (valor <= 0 || valor > 99999999.99m)
+                    throw new ArgumentException("Sicoob: valor do título deve ser positivo e caber nas dez posições do código de barras.");
+                if (string.IsNullOrWhiteSpace(nomeSeq))
+                    throw new ArgumentException("Sicoob: sequência do nosso número não configurada na integração bancária.");
+            }
+
             //System.Windows.Forms.MessageBox.Show("Obtendo sequencia");
-            Int64 seqNossoNumero = BoletoInterativo.ObterValorSequencia(nomeSeq);
+            Int64 seqNossoNumero = obterSequencia(nomeSeq);
             //Int64 seqNossoNumero = 19;
 
 
@@ -36,7 +56,10 @@ namespace Boleto2.Net.Interativo
             //var boleto = new Boleto(boletos.Banco);
 
             //System.Windows.Forms.MessageBox.Show("Gerando informacoes cedente");
-            boletos.Banco = BoletoInterativo.GerarBoletoInfoCedente(integracaoBancaria, det);
+            if (enumBanco != Bancos.Sicoob)
+                boletos.Banco = BoletoInterativo.GerarBoletoInfoCedente(integracaoBancaria, det);
+            else
+                SicoobIntegracao.ValidarSequencia(seqNossoNumero);
 
             //System.Windows.Forms.MessageBox.Show("Gerando info boleto");
             Boleto boleto = new Boleto(boletos.Banco);
@@ -46,7 +69,10 @@ namespace Boleto2.Net.Interativo
             //boleto.Carteira = "109";
 
 
-            boletos.Banco.FormataCedente();
+            if (enumBanco == Bancos.Sicoob)
+                SicoobIntegracao.AplicarConfiguracaoTitulo(boleto, det);
+            else
+                boletos.Banco.FormataCedente();
 
             //calcula tudo o que precisa
             boleto.ValidarDados();

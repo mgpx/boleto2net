@@ -21,7 +21,7 @@ namespace Boleto2.Net.Interativo
 
         private List<Pendfin> pendfins;
 
-        private String[] mBancosSuportados = new string[] { "753", "748", "341", "237", "041", "001" };
+        private String[] mBancosSuportados = new string[] { "753", "748", "341", "237", "041", "001", "756" };
 
         private static Boolean HabilitaLogs = true;
 
@@ -37,25 +37,15 @@ namespace Boleto2.Net.Interativo
 
         public static List<String> ObterOperacoes(String transacoes)
         {
-            var conn = ObterConexaoBanco();
-            List<String> operacoes = new List<string>();
-
-            String sql = "select pfin_operacao " +
-           " from pendfin " +
-           $" where pfin_transacao in ('{transacoes}')";
-
-            conn.Open();
-
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            var operacoes = new List<string>();
+            using (var conn = ObterConexaoBanco())
+            using (var cmd = new NpgsqlCommand("select pfin_operacao from pendfin where pfin_transacao = @transacao order by pfin_parcela, pfin_operacao", conn))
             {
-                operacoes.Add(reader.GetSafeValue<String>("pfin_operacao"));
+                cmd.Parameters.AddWithValue("transacao", transacoes);
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                    while (reader.Read()) operacoes.Add(reader.GetSafeValue<string>("pfin_operacao"));
             }
-
-            reader.Close();
-            conn.Close();
             return operacoes;
         }
 
@@ -274,21 +264,32 @@ namespace Boleto2.Net.Interativo
 
         public void GerarBoletoPDF(Pendfin pendfin, Empresa empresa, Cliente cliente, IntegracaoBancariaDet det, IntegracaoBancaria integracaoBancaria)
         {
-            Boletos boletos = new Boletos();
-
             RegistrarLog($"Gerando PDF OP: {pendfin.pfin_operacao}");
-            //Cabeçalho
-            //if (pendfin.itbc_banco.Equals("748") == false && pendfin.itbc_banco.Equals("341") == false)
-            if (mBancosSuportados.Contains(pendfin.itbc_banco) == false)
-                 return;
-            //throw new Exception("Bancos suportados por esta DLL Sicredi / Itau / NCBBank / Bradesco");
+            if (!mBancosSuportados.Contains(pendfin.itbc_banco)) return;
+            var boleto = MontarBoleto(pendfin, empresa, cliente, det, integracaoBancaria);
+            byte[] pdf;
+            using (var impressao = new BoletoBancario { Boleto = boleto })
+                pdf = impressao.MontaBytesPDF(false);
+            Directory.CreateDirectory(mDirBase);
+            var caminho = Path.Combine(mDirBase, "blt" + pendfin.pfin_operacao + ".pdf");
+            File.WriteAllBytes(caminho, pdf);
+            mListaPathPDFS.Add(caminho);
+            RegistrarLog($"PDF gerado em: {caminho}");
+        }
 
+        internal static Boleto MontarBoleto(Pendfin pendfin, Empresa empresa, Cliente cliente,
+            IntegracaoBancariaDet det, IntegracaoBancaria integracaoBancaria, bool validarChavesERP = true)
+        {
+            if (!new[] { "753", "748", "341", "237", "041", "001", "756" }.Contains(pendfin.itbc_banco))
+                throw new ArgumentException("Banco não integrado ao fluxo de boletos: " + pendfin.itbc_banco);
+            if (!pendfin.pfin_datavcto.HasValue || !pendfin.pfin_datalanc.HasValue)
+                throw new ArgumentException("O título não possui data de emissão ou vencimento.");
             var enuBmanco = (Bancos)Convert.ToUInt16(pendfin.itbc_banco);
 
-            //boletos.Banco = Banco.Instancia(enumBanco);
-            boletos.Banco = GerarBoletoInfoCedente(integracaoBancaria, det);
+            //banco = Banco.Instancia(enumBanco);
+            var banco = GerarBoletoInfoCedente(integracaoBancaria, det);
             
-            boletos.Banco.Cedente.Endereco = new Boleto2Net.Endereco
+            banco.Cedente.Endereco = new Boleto2Net.Endereco
             {
                 LogradouroEndereco = empresa.empr_endereco,
                 LogradouroNumero = empresa.empr_numero,
@@ -301,18 +302,18 @@ namespace Boleto2.Net.Interativo
 
              if (enuBmanco == Bancos.Nbcbank)
             {
-                boletos.Banco.Cedente.Endereco.LogradouroEndereco = "<BR/>R URUGUAI 155 - CONJ 1308 - CENTRO, PORTO ALEGRE - RS CEP 90010-140";
-                boletos.Banco.Cedente.Endereco.LogradouroNumero = String.Empty;
-                boletos.Banco.Cedente.Endereco.LogradouroComplemento = String.Empty;
-                boletos.Banco.Cedente.Endereco.Bairro = String.Empty;
-                boletos.Banco.Cedente.Endereco.Cidade = String.Empty;
-                boletos.Banco.Cedente.Endereco.UF = String.Empty;
-                boletos.Banco.Cedente.Endereco.CEP = String.Empty;
+                banco.Cedente.Endereco.LogradouroEndereco = "<BR/>R URUGUAI 155 - CONJ 1308 - CENTRO, PORTO ALEGRE - RS CEP 90010-140";
+                banco.Cedente.Endereco.LogradouroNumero = String.Empty;
+                banco.Cedente.Endereco.LogradouroComplemento = String.Empty;
+                banco.Cedente.Endereco.Bairro = String.Empty;
+                banco.Cedente.Endereco.Cidade = String.Empty;
+                banco.Cedente.Endereco.UF = String.Empty;
+                banco.Cedente.Endereco.CEP = String.Empty;
 
             }
             //Títulos
 
-            var boleto = new Boleto(boletos.Banco);
+            var boleto = new Boleto(banco);
             boleto.Sacado = new Sacado
             {
                 CPFCNPJ = cliente.clie_cnpj,
@@ -339,21 +340,23 @@ namespace Boleto2.Net.Interativo
 
             boleto.DataEmissao = pendfin.pfin_datalanc.Value;
             boleto.DataVencimento = pendfin.pfin_datavcto.Value;
-            //ano/bytegeracao/sequencial
-            int seq = 0;
-            boleto.NossoNumero = pendfin.pfin_nossonumero.Contains(".") ? pendfin.pfin_nossonumero.Substring(0, pendfin.pfin_nossonumero.IndexOf(".")) : pendfin.pfin_nossonumero;
+            if (validarChavesERP && enuBmanco != Bancos.Sicoob)
+                boleto.NossoNumero = pendfin.pfin_nossonumero.Contains(".") ? pendfin.pfin_nossonumero.Substring(0, pendfin.pfin_nossonumero.IndexOf(".")) : pendfin.pfin_nossonumero;
 
-            if (enuBmanco == Bancos.Bradesco)
+            if (validarChavesERP && enuBmanco == Bancos.Bradesco)
             {
                 boleto.NossoNumero = pendfin.pfin_nossonumero.Substring(2, 11);
                 boleto.NossoNumeroDV = pendfin.pfin_nossonumero.Substring(13, 1);
             }
 
+            if (!validarChavesERP && enuBmanco != Bancos.Sicoob)
+                boleto.NossoNumero = NumeroBoletoConferencia.Ler((int)enuBmanco, pendfin.pfin_nossonumero).Numero;
+
             boleto.ValorTitulo = pendfin.pfin_valor;
             boleto.Aceite = "N";
             boleto.EspecieDocumento = TipoEspecieDocumento.DM;
-            boleto.Carteira = boletos.Banco.Cedente.ContaBancaria.CarteiraPadrao;
-            boleto.VariacaoCarteira = boletos.Banco.Cedente.ContaBancaria.VariacaoCarteiraPadrao;
+            boleto.Carteira = banco.Cedente.ContaBancaria.CarteiraPadrao;
+            boleto.VariacaoCarteira = banco.Cedente.ContaBancaria.VariacaoCarteiraPadrao;
 
             boleto.DataDesconto = DateTime.Today;
             boleto.ValorDesconto = pendfin.pfin_desconto;
@@ -500,22 +503,13 @@ namespace Boleto2.Net.Interativo
                 boleto.MensagemInstrucoesCaixa = det["101"] + "<br/>" + det["102"] + "<br/>" + det["103"] + "<br/>" + det["104"];
             }
             
-            boleto.ValidarDadosChaves(pendfin.pfin_codbarras, pendfin.pfin_linhadig);
-            boletos.Add(boleto);
-
-            var boletoBancario = new BoletoBancario() { Boleto = boleto };
-            var pdf = boletoBancario.MontaBytesPDF(false);
-
-            if (!Directory.Exists(mDirBase))
-                Directory.CreateDirectory(mDirBase);
-
-            String pathPDF = Path.Combine(mDirBase, "blt" + pendfin.pfin_operacao + ".pdf");
-
-            mListaPathPDFS.Add(pathPDF);
-
-            RegistrarLog($"PDF gerado em: {pathPDF}");
-
-            File.WriteAllBytes(pathPDF, pdf);
+            if (enuBmanco == Bancos.Sicoob)
+                SicoobIntegracao.PrepararTituloExistente(boleto, pendfin, det, validarChavesERP);
+            else
+                boleto.ValidarDadosChaves(pendfin.pfin_codbarras, pendfin.pfin_linhadig);
+            if (!validarChavesERP)
+                ConferenciaBoletoService.RecalcularSicredi(boleto);
+            return boleto;
         }
 
         public static IBanco GerarBoletoInfoCedente(IntegracaoBancaria integracaoBancaria, IntegracaoBancariaDet det)
@@ -524,6 +518,9 @@ namespace Boleto2.Net.Interativo
             IBanco ibanco = null;
             switch (banco)
             {
+                case Bancos.Sicoob:
+                    ibanco = GerarBoletoInfoCedenteSicoob(integracaoBancaria, det);
+                    break;
                 case Bancos.Sicredi:
                     ibanco = GerarBoletoInfoCedenteSicredi(integracaoBancaria, det);
                     break;
@@ -549,6 +546,9 @@ namespace Boleto2.Net.Interativo
             return ibanco;
         }
      
+        public static IBanco GerarBoletoInfoCedenteSicoob(IntegracaoBancaria integracaoBancaria, IntegracaoBancariaDet det)
+            => SicoobIntegracao.GerarCedente(integracaoBancaria, det);
+
         public static IBanco GerarBoletoInfoCedenteSicredi(IntegracaoBancaria integracaoBancaria, IntegracaoBancariaDet det)
         {
             var banco = Banco.Instancia(Bancos.Sicredi);
@@ -880,31 +880,27 @@ namespace Boleto2.Net.Interativo
         public Empresa ObterEmpresa(String codEmpresa)
         {
             Empresa empresa = new Empresa();
-            var conn = ObterConexaoBanco();
-
-            String sql = "select * from empresas " +
-            $"where empr_codigo = '{codEmpresa}'";
-
-            conn.Open();
-
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            using (var conn = ObterConexaoBanco())
+            using (var cmd = new NpgsqlCommand("select * from empresas where empr_codigo = @codigo", conn))
             {
-                empresa.empr_endereco = reader.GetSafeValue<String>("empr_endereco");
-                empresa.empr_cnpj = reader.GetSafeValue<String>("empr_cnpj");
-                empresa.empr_complemento = reader.GetSafeValue<String>("empr_complemento");
-                empresa.empr_bairro = reader.GetSafeValue<String>("empr_bairro");
-                empresa.empr_cep = reader.GetSafeValue<String>("empr_cep");
-                empresa.empr_cidade = reader.GetSafeValue<String>("empr_cidade");
-                empresa.empr_uf = reader.GetSafeValue<String>("empr_uf");
-                empresa.empr_numero = reader.GetSafeValue<String>("empr_numero");
-                empresa.empr_nome = reader.GetSafeValue<String>("empr_nome");
+                cmd.Parameters.AddWithValue("codigo", codEmpresa);
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        empresa.empr_endereco = reader.GetSafeValue<String>("empr_endereco");
+                        empresa.empr_cnpj = reader.GetSafeValue<String>("empr_cnpj");
+                        empresa.empr_complemento = reader.GetSafeValue<String>("empr_complemento");
+                        empresa.empr_bairro = reader.GetSafeValue<String>("empr_bairro");
+                        empresa.empr_cep = reader.GetSafeValue<String>("empr_cep");
+                        empresa.empr_cidade = reader.GetSafeValue<String>("empr_cidade");
+                        empresa.empr_uf = reader.GetSafeValue<String>("empr_uf");
+                        empresa.empr_numero = reader.GetSafeValue<String>("empr_numero");
+                        empresa.empr_nome = reader.GetSafeValue<String>("empr_nome");
+                    }
+                }
             }
-
-            reader.Close();
-            conn.Close();
             return empresa;
         }
 
@@ -930,125 +926,109 @@ namespace Boleto2.Net.Interativo
         public Cliente ObterCliente(Int64 codCliente)
         {
             Cliente cliente = new Cliente();
-            var conn = ObterConexaoBanco();
-
-            String sql = "select * from clientes " +
-            $"where clie_codigo = {codCliente}";
-
-            conn.Open();
-
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            using (var conn = ObterConexaoBanco())
+            using (var cmd = new NpgsqlCommand("select * from clientes where clie_codigo = @codigo", conn))
             {
-                cliente.clie_cnpj = reader.GetSafeValue<String>("clie_cnpj");
-                cliente.clie_razaosocial = reader.GetSafeValue<String>("clie_razaosocial");
-                cliente.clie_endereco = reader.GetSafeValue<String>("clie_endereco");
-                cliente.clie_numero = reader.GetSafeValue<String>("clie_numero");
-                cliente.clie_complemento = reader.GetSafeValue<String>("clie_complemento");
-                cliente.clie_bairro = reader.GetSafeValue<String>("clie_bairro");
-                cliente.clie_cidade = reader.GetSafeValue<String>("clie_cidade");
-                cliente.clie_uf = reader.GetSafeValue<String>("clie_uf");
-                cliente.clie_cep = reader.GetSafeValue<String>("clie_cep");
-                cliente.clie_email = reader.GetSafeValue<String>("clie_email");
-                cliente.clie_cobremail = reader.GetSafeValue<String>("clie_cobremail");
+                cmd.Parameters.AddWithValue("codigo", codCliente);
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        cliente.clie_cnpj = reader.GetSafeValue<String>("clie_cnpj");
+                        cliente.clie_razaosocial = reader.GetSafeValue<String>("clie_razaosocial");
+                        cliente.clie_endereco = reader.GetSafeValue<String>("clie_endereco");
+                        cliente.clie_numero = reader.GetSafeValue<String>("clie_numero");
+                        cliente.clie_complemento = reader.GetSafeValue<String>("clie_complemento");
+                        cliente.clie_bairro = reader.GetSafeValue<String>("clie_bairro");
+                        cliente.clie_cidade = reader.GetSafeValue<String>("clie_cidade");
+                        cliente.clie_uf = reader.GetSafeValue<String>("clie_uf");
+                        cliente.clie_cep = reader.GetSafeValue<String>("clie_cep");
+                        cliente.clie_email = reader.GetSafeValue<String>("clie_email");
+                        cliente.clie_cobremail = reader.GetSafeValue<String>("clie_cobremail");
+                    }
+                }
             }
-
-            reader.Close();
-            conn.Close();
             return cliente;
-
         }
 
         public Cliente ObterFornecedor(Int64 codFornecedor)
         {
             Cliente cliente = new Cliente();
-            var conn = ObterConexaoBanco();
-
-            String sql = "select * from fornecedores " +
-            $"where forn_codigo = {codFornecedor}";
-
-            conn.Open();
-
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            using (var conn = ObterConexaoBanco())
+            using (var cmd = new NpgsqlCommand("select * from fornecedores where forn_codigo = @codigo", conn))
             {
-                cliente.clie_cnpj = reader.GetSafeValue<String>("forn_cnpj");
-                cliente.clie_razaosocial = reader.GetSafeValue<String>("forn_razaosocial");
-                cliente.clie_endereco = reader.GetSafeValue<String>("forn_endereco");
-                cliente.clie_numero = reader.GetSafeValue<String>("forn_numero");
-                cliente.clie_complemento = reader.GetSafeValue<String>("forn_complemento");
-                cliente.clie_bairro = reader.GetSafeValue<String>("forn_bairro");
-                cliente.clie_cidade = reader.GetSafeValue<String>("forn_cidade");
-                cliente.clie_uf = reader.GetSafeValue<String>("forn_uf");
-                cliente.clie_cep = reader.GetSafeValue<String>("forn_cep");
-                cliente.clie_email = reader.GetSafeValue<String>("forn_email");
-                cliente.clie_cobremail = reader.GetSafeValue<String>("forn_emailnfe");
+                cmd.Parameters.AddWithValue("codigo", codFornecedor);
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        cliente.clie_cnpj = reader.GetSafeValue<String>("forn_cnpj");
+                        cliente.clie_razaosocial = reader.GetSafeValue<String>("forn_razaosocial");
+                        cliente.clie_endereco = reader.GetSafeValue<String>("forn_endereco");
+                        cliente.clie_numero = reader.GetSafeValue<String>("forn_numero");
+                        cliente.clie_complemento = reader.GetSafeValue<String>("forn_complemento");
+                        cliente.clie_bairro = reader.GetSafeValue<String>("forn_bairro");
+                        cliente.clie_cidade = reader.GetSafeValue<String>("forn_cidade");
+                        cliente.clie_uf = reader.GetSafeValue<String>("forn_uf");
+                        cliente.clie_cep = reader.GetSafeValue<String>("forn_cep");
+                        cliente.clie_email = reader.GetSafeValue<String>("forn_email");
+                        cliente.clie_cobremail = reader.GetSafeValue<String>("forn_emailnfe");
+                    }
+                }
             }
-
-            reader.Close();
-            conn.Close();
             return cliente;
         }
-        
+
         public static IntegracaoBancariaDet ObterConfigDet(String codigo)
         {
             IntegracaoBancariaDet retorno = new IntegracaoBancariaDet();
-            var conn = ObterConexaoBanco();
-
-            String sql = $"select * from intbcodet where itbd_itbc_codigo = '{codigo}' order by itbd_codigo";
-
-            conn.Open();
-
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            using (var conn = ObterConexaoBanco())
+            using (var cmd = new NpgsqlCommand("select * from intbcodet where itbd_itbc_codigo = @codigo order by itbd_codigo", conn))
             {
-                retorno.Add(reader.GetSafeValue<String>("itbd_codigo"),
-                    reader.GetSafeValue<String>("itbd_instrucao"),
-                    reader.GetSafeValue<String>("itbd_valor"));
+                cmd.Parameters.AddWithValue("codigo", codigo);
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        retorno.Add(reader.GetSafeValue<String>("itbd_codigo"),
+                            reader.GetSafeValue<String>("itbd_instrucao"),
+                            reader.GetSafeValue<String>("itbd_valor"));
+                    }
+                }
             }
-
-            conn.Close();
             return retorno;
-
         }
 
         public static IntegracaoBancaria ObterIntegracaoBancaria(String codIntbco)
         {
             IntegracaoBancaria integracaoBancaria = new IntegracaoBancaria();
-            var conn = ObterConexaoBanco();
-
-            String sql = "select * from intbco " +
-            $"where itbc_codigo = '{codIntbco}'";
-
-            conn.Open();
-
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            using (var conn = ObterConexaoBanco())
+            using (var cmd = new NpgsqlCommand("select * from intbco where itbc_codigo = @codigo", conn))
             {
-                integracaoBancaria.itbc_codigo = reader.GetSafeValue<String>("itbc_codigo");
-                integracaoBancaria.itbc_descricao = reader.GetSafeValue<String>("itbc_descricao");
-                integracaoBancaria.itbc_banco = reader.GetSafeValue<String>("itbc_banco");
-                integracaoBancaria.itbc_tpproc = reader.GetSafeValue<String>("itbc_tpproc");
-                integracaoBancaria.itbc_pger_conta = reader.GetSafeValue<String>("itbc_pger_conta");
-                integracaoBancaria.itbc_database = reader.GetSafeValue<String>("itbc_database");
-                integracaoBancaria.itbc_tppend = reader.GetSafeValue<String>("itbc_tppend");
-                integracaoBancaria.itbc_usua_codigo = reader.GetSafeValue<String>("itbc_usua_codigo");
-                integracaoBancaria.itbc_arqdest = reader.GetSafeValue<String>("itbc_arqdest");
-                integracaoBancaria.itbc_cont_geral = reader.GetSafeValue<String>("itbc_cont_geral");
-                integracaoBancaria.itbc_cont_individual = reader.GetSafeValue<String>("itbc_cont_individual");
-                integracaoBancaria.itbc_protesto = reader.GetSafeValue<String>("itbc_protesto");
+                cmd.Parameters.AddWithValue("codigo", codIntbco);
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        integracaoBancaria.itbc_codigo = reader.GetSafeValue<String>("itbc_codigo");
+                        integracaoBancaria.itbc_descricao = reader.GetSafeValue<String>("itbc_descricao");
+                        integracaoBancaria.itbc_banco = reader.GetSafeValue<String>("itbc_banco");
+                        integracaoBancaria.itbc_tpproc = reader.GetSafeValue<String>("itbc_tpproc");
+                        integracaoBancaria.itbc_pger_conta = reader.GetSafeValue<String>("itbc_pger_conta");
+                        integracaoBancaria.itbc_database = reader.GetSafeValue<String>("itbc_database");
+                        integracaoBancaria.itbc_tppend = reader.GetSafeValue<String>("itbc_tppend");
+                        integracaoBancaria.itbc_usua_codigo = reader.GetSafeValue<String>("itbc_usua_codigo");
+                        integracaoBancaria.itbc_arqdest = reader.GetSafeValue<String>("itbc_arqdest");
+                        integracaoBancaria.itbc_cont_geral = reader.GetSafeValue<String>("itbc_cont_geral");
+                        integracaoBancaria.itbc_cont_individual = reader.GetSafeValue<String>("itbc_cont_individual");
+                        integracaoBancaria.itbc_protesto = reader.GetSafeValue<String>("itbc_protesto");
+                    }
+                }
             }
-
-            reader.Close();
-            conn.Close();
             return integracaoBancaria;
         }
 
@@ -1088,7 +1068,9 @@ namespace Boleto2.Net.Interativo
         public List<Pendfin> LerDadosPendfin(List<String> operacoes)
         {
             List<Pendfin> retorno = new List<Pendfin>();
-            var conn = ObterConexaoBanco();
+            if (operacoes == null || operacoes.Count == 0) return retorno;
+            using (var conn = ObterConexaoBanco())
+            {
 
             String sql = "select pfin_operacao, pfin_transacao, pfin_status, pfin_pagrec, " +
             "pfin_datamvto, pfin_dataref, pfin_datavcto, pfin_datalanc, pfin_valor, pfin_empr_codigo, " +
@@ -1100,12 +1082,15 @@ namespace Boleto2.Net.Interativo
             "from pendfin " +
             "inner join planoger on pger_conta = pfin_contager " +
             "inner join intbco on itbc_codigo = pger_itbc_codigo " +
-            $"where pfin_operacao in ({string.Join(",", operacoes.Select(p => "'" + p + "'"))})";
+            "where pfin_operacao = ANY(@operacoes)";
 
             conn.Open();
 
-            NpgsqlCommand cmd = new NpgsqlCommand(sql, conn);
-            var reader = cmd.ExecuteReader();
+            using (var cmd = new NpgsqlCommand(sql, conn))
+            {
+            cmd.Parameters.AddWithValue("operacoes", operacoes.ToArray());
+            using (var reader = cmd.ExecuteReader())
+            {
             
             while (reader.Read())
             {
@@ -1146,7 +1131,9 @@ namespace Boleto2.Net.Interativo
                 pendfin.itbc_protesto        = reader.GetSafeValue<String>("itbc_protesto");
             }
 
-            conn.Close();
+            }
+            }
+            }
             return retorno;
         }
 

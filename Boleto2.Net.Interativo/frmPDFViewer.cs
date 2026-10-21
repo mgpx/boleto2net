@@ -42,6 +42,14 @@ namespace Boleto2.Net.Interativo
             this.mStream = stream;
         }
 
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            var documento = pdfViewer1.Document;
+            pdfViewer1.Document = null;
+            documento?.Dispose();
+            base.OnFormClosed(e);
+        }
+
         protected override void OnShown(EventArgs e)
         {
             //MessageBox.Show("onShown");
